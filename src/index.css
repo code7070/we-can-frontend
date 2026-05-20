@@ -1,0 +1,198 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource/plus-jakarta-sans/400.css";
+@import "@fontsource/plus-jakarta-sans/500.css";
+@import "@fontsource/plus-jakarta-sans/600.css";
+@import "@fontsource/plus-jakarta-sans/700.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* TaskFlow design tokens */
+@theme {
+  --color-bg: #fafafa;
+  --color-surface: #ffffff;
+  --color-border: #e4e4e7;
+  --color-text-primary: #18181b;
+  --color-text-secondary: #71717a;
+  --color-text-disabled: #a1a1aa;
+  --color-accent: #2563eb;
+  --color-accent-subtle: #eff6ff;
+  --color-accent-text: #1d4ed8;
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-danger: #dc2626;
+
+  --font-family-sans: "Plus Jakarta Sans", sans-serif;
+
+  --font-size-xs: 11px;
+  --font-size-sm: 13px;
+  --font-size-base: 15px;
+  --font-size-md: 15px;
+  --font-size-lg: 18px;
+  --font-size-xl: 24px;
+  --font-size-display: 36px;
+
+  --max-width-content: 720px;
+  --max-width-search: 560px;
+
+  --transition-duration-DEFAULT: 150ms;
+}
+
+/* shadcn token bridge — overrides default shadcn palette with TaskFlow tokens */
+@theme inline {
+  --font-sans: "Plus Jakarta Sans", sans-serif;
+  --font-heading: "Plus Jakarta Sans", sans-serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+}
+
+:root {
+  /* shadcn slots mapped to TaskFlow colors */
+  --background: #fafafa;
+  --foreground: #18181b;
+  --card: #ffffff;
+  --card-foreground: #18181b;
+  --popover: #ffffff;
+  --popover-foreground: #18181b;
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  --accent: #2563eb;
+  --accent-foreground: #ffffff;
+  --destructive: #dc2626;
+  --border: #e4e4e7;
+  --input: #e4e4e7;
+  --ring: #2563eb;
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Markdown rendered content — default typography */
+  .markdown-content p {
+    margin: 0 0 8px;
+  }
+  .markdown-content p:last-child {
+    margin-bottom: 0;
+  }
+  .markdown-content h1 {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 20px 0 10px;
+    line-height: 1.35;
+    color: #18181B;
+  }
+  .markdown-content h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 16px 0 8px;
+    line-height: 1.4;
+    color: #18181B;
+  }
+  .markdown-content h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 12px 0 6px;
+    line-height: 1.4;
+    color: #18181B;
+  }
+  .markdown-content ul,
+  .markdown-content ol {
+    padding-left: 24px;
+    margin: 8px 0;
+  }
+  .markdown-content li {
+    margin: 4px 0;
+  }
+  .markdown-content blockquote {
+    border-left: 3px solid #2563EB;
+    padding: 8px 16px;
+    margin: 12px 0;
+    background: #FAFAFA;
+    color: #3F3F46;
+    font-style: italic;
+    border-radius: 0 4px 4px 0;
+  }
+  .markdown-content pre {
+    background: #18181B;
+    color: #E4E4E7;
+    padding: 14px 16px;
+    border-radius: 8px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 13px;
+    margin: 12px 0;
+    overflow-x: auto;
+    line-height: 1.5;
+  }
+  .markdown-content code {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.875em;
+    background: #F4F4F5;
+    padding: 1px 4px;
+    border-radius: 4px;
+  }
+  .markdown-content a {
+    color: #1D4ED8;
+    text-decoration: underline;
+    overflow-wrap: break-word;
+  }
+  .markdown-content img {
+    max-width: 100%;
+    border-radius: 8px;
+  }
+  .markdown-content hr {
+    border: none;
+    border-top: 1px solid #E4E4E7;
+    margin: 16px 0;
+  }
+  .markdown-content table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 12px 0;
+    font-size: 14px;
+  }
+  .markdown-content th,
+  .markdown-content td {
+    border: 1px solid #E4E4E7;
+    padding: 8px 12px;
+    text-align: left;
+  }
+  .markdown-content th {
+    background: #FAFAFA;
+    font-weight: 600;
+  }
+}
