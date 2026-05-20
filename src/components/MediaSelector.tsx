@@ -1,18 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Upload, Grid3x3, X, Search, Film, Check } from "lucide-react";
+import { Upload, Grid3x3, X, Search, Film, Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { listMedia, uploadMedia, detectMediaType, type MediaObject } from "@/api/media";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export interface MediaLibraryItem {
-  id: number | string;
-  type: "image" | "video";
+  id: string;
+  type: "image" | "video" | "other";
   name: string;
   size: string;
-  width: number;
-  height: number;
-  thumb: string; // gradient string or URL (placeholder in mock data)
+  thumb: string;
   date: string;
+  url: string;
+  key: string;
 }
 
 export interface InsertedMedia {
@@ -22,21 +23,47 @@ export interface InsertedMedia {
   size?: number;
   mimeType?: string;
   file?: File;
+  key?: string;
 }
 
-// ─── Sample data (replace with API when backend is ready) ────────────────────
+// ─── Formatters ──────────────────────────────────────────────────────────────
 
-const MEDIA_LIBRARY: MediaLibraryItem[] = [
-  { id: 1, type: "image", name: "hero-mockup-desktop.png", size: "1.2 MB", width: 1920, height: 1080, thumb: "linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%)", date: "2 days ago" },
-  { id: 2, type: "image", name: "wireframe-mobile-v2.png", size: "340 KB", width: 375, height: 812, thumb: "linear-gradient(135deg, #E0E7FF 0%, #C7D2FE 100%)", date: "3 days ago" },
-  { id: 3, type: "image", name: "screenshot-nav-hover.png", size: "186 KB", width: 1440, height: 900, thumb: "linear-gradient(135deg, #F0FDF4 0%, #BBF7D0 100%)", date: "5 days ago" },
-  { id: 4, type: "image", name: "logo-taskflow-dark.svg", size: "8 KB", width: 200, height: 48, thumb: "linear-gradient(135deg, #18181B 0%, #3F3F46 100%)", date: "1 week ago" },
-  { id: 5, type: "video", name: "prototype-walkthrough.mp4", size: "14.5 MB", width: 1920, height: 1080, thumb: "linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)", date: "1 week ago" },
-  { id: 6, type: "image", name: "component-library-preview.png", size: "520 KB", width: 1600, height: 900, thumb: "linear-gradient(135deg, #FCE7F3 0%, #FBCFE8 100%)", date: "2 weeks ago" },
-  { id: 7, type: "image", name: "user-flow-diagram.png", size: "890 KB", width: 2400, height: 1200, thumb: "linear-gradient(135deg, #ECFDF5 0%, #A7F3D0 100%)", date: "2 weeks ago" },
-  { id: 8, type: "video", name: "onboarding-animation.mp4", size: "6.2 MB", width: 1080, height: 1920, thumb: "linear-gradient(135deg, #EDE9FE 0%, #DDD6FE 100%)", date: "3 weeks ago" },
-  { id: 9, type: "image", name: "design-tokens-chart.png", size: "145 KB", width: 800, height: 600, thumb: "linear-gradient(135deg, #FFF7ED 0%, #FED7AA 100%)", date: "3 weeks ago" },
-];
+function formatSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function formatRelative(iso: string): string {
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return "";
+  const diff = Date.now() - then;
+  const mins = Math.floor(diff / 60_000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins} min ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days} day${days > 1 ? "s" : ""} ago`;
+  const weeks = Math.floor(days / 7);
+  if (weeks < 5) return `${weeks} week${weeks > 1 ? "s" : ""} ago`;
+  const months = Math.floor(days / 30);
+  return `${months} month${months > 1 ? "s" : ""} ago`;
+}
+
+function toLibraryItem(obj: MediaObject): MediaLibraryItem {
+  const type = detectMediaType(obj.name, obj.contentType);
+  return {
+    id: obj.key,
+    key: obj.key,
+    type,
+    name: obj.name,
+    size: formatSize(obj.size),
+    thumb: obj.url,
+    date: formatRelative(obj.uploadedAt),
+    url: obj.url,
+  };
+}
 
 // ─── Upload Zone ─────────────────────────────────────────────────────────────
 
@@ -98,10 +125,12 @@ function UploadZone({ onFilesSelected }: { onFilesSelected: (files: File[]) => v
 
 function UploadedFilePreview({
   file,
+  uploading,
   onRemove,
   onInsert,
 }: {
   file: File;
+  uploading: boolean;
   onRemove: () => void;
   onInsert: () => void;
 }) {
@@ -140,14 +169,20 @@ function UploadedFilePreview({
         <button
           type="button"
           onClick={onInsert}
-          className="px-2.5 py-1 rounded-md bg-accent hover:bg-accent-text text-white text-xs font-semibold transition-colors duration-150"
+          disabled={uploading}
+          className={cn(
+            "px-2.5 py-1 rounded-md text-white text-xs font-semibold transition-colors duration-150 flex items-center gap-1",
+            uploading ? "bg-accent/60 cursor-wait" : "bg-accent hover:bg-accent-text"
+          )}
         >
-          Insert
+          {uploading && <Loader2 size={12} className="animate-spin" />}
+          {uploading ? "Uploading…" : "Insert"}
         </button>
         <button
           type="button"
           onClick={onRemove}
-          className="w-7 h-7 rounded-md text-text-disabled hover:bg-[#F4F4F5] hover:text-text-primary flex items-center justify-center transition-colors duration-150"
+          disabled={uploading}
+          className="w-7 h-7 rounded-md text-text-disabled hover:bg-[#F4F4F5] hover:text-text-primary flex items-center justify-center transition-colors duration-150 disabled:opacity-50"
         >
           <X size={14} />
         </button>
@@ -181,15 +216,22 @@ function MediaLibraryGridItem({
       }}
     >
       <div
-        className="w-full relative flex items-center justify-center"
-        style={{ aspectRatio: "4/3", background: item.thumb }}
+        className="w-full relative flex items-center justify-center bg-[#F4F4F5] overflow-hidden"
+        style={{ aspectRatio: "4/3" }}
       >
-        {isVideo && (
-          <div className="w-8 h-8 rounded-full bg-black/50 flex items-center justify-center">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFF">
-              <polygon points="5 3 19 12 5 21 5 3" />
-            </svg>
-          </div>
+        {item.type === "image" ? (
+          <img src={item.thumb} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
+        ) : isVideo ? (
+          <>
+            <video src={item.thumb} className="w-full h-full object-cover" muted playsInline preload="metadata" />
+            <div className="absolute w-8 h-8 rounded-full bg-black/50 flex items-center justify-center">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFF">
+                <polygon points="5 3 19 12 5 21 5 3" />
+              </svg>
+            </div>
+          </>
+        ) : (
+          <Film size={22} className="text-text-disabled" />
         )}
         {selected && (
           <div className="absolute top-1.5 right-1.5 w-[22px] h-[22px] rounded-full bg-accent flex items-center justify-center">
@@ -253,9 +295,14 @@ export interface MediaSelectorProps {
 export function MediaSelector({ open, onClose, onInsert }: MediaSelectorProps) {
   const [tab, setTab] = useState<"upload" | "library">("upload");
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [uploadingKey, setUploadingKey] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<MediaLibraryItem | null>(null);
   const [filterType, setFilterType] = useState<"all" | "image" | "video">("all");
   const [search, setSearch] = useState("");
+  const [library, setLibrary] = useState<MediaLibraryItem[]>([]);
+  const [libraryLoading, setLibraryLoading] = useState(false);
+  const [libraryError, setLibraryError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -268,25 +315,58 @@ export function MediaSelector({ open, onClose, onInsert }: MediaSelectorProps) {
     };
   }, [open, onClose]);
 
+  useEffect(() => {
+    if (!open || tab !== "library") return;
+    let cancelled = false;
+    setLibraryLoading(true);
+    setLibraryError(null);
+    listMedia()
+      .then((objects) => {
+        if (cancelled) return;
+        const items = objects
+          .map(toLibraryItem)
+          .sort((a, b) => b.id.localeCompare(a.id));
+        setLibrary(items);
+      })
+      .catch((e: unknown) => {
+        if (cancelled) return;
+        setLibraryError(e instanceof Error ? e.message : "Failed to load library");
+      })
+      .finally(() => {
+        if (!cancelled) setLibraryLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [open, tab]);
+
   if (!open) return null;
 
-  const filteredLibrary = MEDIA_LIBRARY.filter((item) => {
+  const filteredLibrary = library.filter((item) => {
     if (filterType !== "all" && item.type !== filterType) return false;
     if (search && !item.name.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
 
-  function handleInsertUploaded(file: File) {
-    const isImage = file.type.startsWith("image/");
-    onInsert({
-      type: isImage ? "image" : "media",
-      name: file.name,
-      url: URL.createObjectURL(file),
-      size: file.size,
-      mimeType: file.type,
-      file,
-    });
-    onClose();
+  async function handleInsertUploaded(file: File, index: number) {
+    const uploadKey = `${file.name}-${index}`;
+    setUploadingKey(uploadKey);
+    setUploadError(null);
+    try {
+      const uploaded = await uploadMedia(file);
+      const isImage = (uploaded.type || file.type).startsWith("image/");
+      onInsert({
+        type: isImage ? "image" : "media",
+        name: uploaded.name,
+        url: uploaded.url,
+        size: uploaded.size,
+        mimeType: uploaded.type,
+        key: uploaded.key,
+      });
+      onClose();
+    } catch (e) {
+      setUploadError(e instanceof Error ? e.message : "Upload failed");
+    } finally {
+      setUploadingKey(null);
+    }
   }
 
   function handleInsertLibrary() {
@@ -294,7 +374,8 @@ export function MediaSelector({ open, onClose, onInsert }: MediaSelectorProps) {
     onInsert({
       type: selectedItem.type === "image" ? "image" : "media",
       name: selectedItem.name,
-      url: selectedItem.thumb, // placeholder until real URL exists
+      url: selectedItem.url,
+      key: selectedItem.key,
     });
     onClose();
   }
@@ -372,15 +453,24 @@ export function MediaSelector({ open, onClose, onInsert }: MediaSelectorProps) {
                     Uploaded files
                   </div>
                   <div className="flex flex-col gap-2">
-                    {uploadedFiles.map((f, i) => (
-                      <UploadedFilePreview
-                        key={`${f.name}-${i}`}
-                        file={f}
-                        onRemove={() => setUploadedFiles((prev) => prev.filter((_, j) => j !== i))}
-                        onInsert={() => handleInsertUploaded(f)}
-                      />
-                    ))}
+                    {uploadedFiles.map((f, i) => {
+                      const uploadKey = `${f.name}-${i}`;
+                      return (
+                        <UploadedFilePreview
+                          key={uploadKey}
+                          file={f}
+                          uploading={uploadingKey === uploadKey}
+                          onRemove={() => setUploadedFiles((prev) => prev.filter((_, j) => j !== i))}
+                          onInsert={() => handleInsertUploaded(f, i)}
+                        />
+                      );
+                    })}
                   </div>
+                </div>
+              )}
+              {uploadError && (
+                <div className="text-[12px] text-danger bg-danger-subtle border border-danger/20 rounded-md px-3 py-2">
+                  {uploadError}
                 </div>
               )}
             </div>
@@ -403,7 +493,15 @@ export function MediaSelector({ open, onClose, onInsert }: MediaSelectorProps) {
               </div>
 
               {/* Grid */}
-              {filteredLibrary.length > 0 ? (
+              {libraryLoading ? (
+                <div className="py-12 flex items-center justify-center text-text-disabled">
+                  <Loader2 size={18} className="animate-spin" />
+                </div>
+              ) : libraryError ? (
+                <div className="py-12 px-6 text-center text-[13px] text-danger">
+                  {libraryError}
+                </div>
+              ) : filteredLibrary.length > 0 ? (
                 <div className="grid grid-cols-3 gap-3">
                   {filteredLibrary.map((item) => (
                     <MediaLibraryGridItem

@@ -5,6 +5,7 @@
 @import "@fontsource/plus-jakarta-sans/500.css";
 @import "@fontsource/plus-jakarta-sans/600.css";
 @import "@fontsource/plus-jakarta-sans/700.css";
+@import "highlight.js/styles/github-dark.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -151,6 +152,8 @@
     background: #18181B;
     color: #E4E4E7;
     padding: 14px 16px;
+    margin: 0;
+    border-radius: 0;
     border-radius: 8px;
     font-family: 'SF Mono', 'Fira Code', monospace;
     font-size: 13px;
@@ -158,12 +161,83 @@
     overflow-x: auto;
     line-height: 1.5;
   }
-  .markdown-content code {
+  .markdown-content :not(pre) > code {
     font-family: 'SF Mono', 'Fira Code', monospace;
     font-size: 0.875em;
     background: #F4F4F5;
+    color: #18181B;
     padding: 1px 4px;
     border-radius: 4px;
+  }
+  .markdown-content pre code {
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 13px;
+    color: inherit;
+  }
+
+  /* Fenced code block — chrome wrapper */
+  .markdown-content .code-block {
+    margin: 12px 0;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #18181B;
+    border: 1px solid #27272A;
+  }
+  .markdown-content .code-block__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px 6px 14px;
+    background: #0F0F11;
+    border-bottom: 1px solid #27272A;
+  }
+  .markdown-content .code-block__lang {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 11px;
+    text-transform: lowercase;
+    letter-spacing: 0.02em;
+    color: #A1A1AA;
+  }
+  .markdown-content .code-block__copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: transparent;
+    color: #A1A1AA;
+    font-size: 11px;
+    font-family: inherit;
+    border: none;
+    cursor: pointer;
+    transition: background 150ms ease, color 150ms ease;
+  }
+  .markdown-content .code-block__copy:hover {
+    background: #27272A;
+    color: #E4E4E7;
+  }
+  .markdown-content .code-block__icon-check {
+    display: none;
+  }
+  .markdown-content .code-block__copy.is-copied {
+    color: #4ADE80;
+  }
+  .markdown-content .code-block__copy.is-copied .code-block__icon-copy {
+    display: none;
+  }
+  .markdown-content .code-block__copy.is-copied .code-block__icon-check {
+    display: inline-block;
+  }
+  .markdown-content .code-block__copy.is-copied .code-block__copy-label::after {
+    content: "ied";
+  }
+  .markdown-content .code-block pre {
+    margin: 0;
+    border-radius: 0;
+    border: none;
   }
   .markdown-content a {
     color: #1D4ED8;

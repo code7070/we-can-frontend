@@ -15,20 +15,18 @@ import {
   tablePlugin,
   diffSourcePlugin,
   BoldItalicUnderlineToggles,
-  BlockTypeSelect,
   ListsToggle,
   CreateLink,
-  InsertImage,
   InsertCodeBlock,
   InsertTable,
   InsertThematicBreak,
-  UndoRedo,
   Separator,
-  DiffSourceToggleWrapper,
   type MDXEditorMethods,
 } from "@mdxeditor/editor";
 import "@mdxeditor/editor/style.css";
+import { Image as ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { MediaSelector, type InsertedMedia } from "@/components/MediaSelector";
 
 // ─── Re-export for consumers ────────────────────────────────────────────────
 
@@ -82,23 +80,34 @@ const DEFAULT_CODE_LANGUAGES: Record<string, string> = {
 
 // ─── Toolbar ────────────────────────────────────────────────────────────────
 
-type ToolbarProps = Pick<RichTextEditorProps, "readOnly">;
+type ToolbarProps = Pick<RichTextEditorProps, "readOnly"> & {
+  onOpenMediaSelector: () => void;
+};
 
-function EditorToolbar({ readOnly }: ToolbarProps) {
+function InsertMediaButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      title="Insert image or media"
+      onClick={onClick}
+      className="inline-flex items-center justify-center w-7 h-7 rounded text-text-secondary hover:bg-[#F4F4F5] hover:text-text-primary transition-colors duration-150"
+    >
+      <ImageIcon size={16} />
+    </button>
+  );
+}
+
+function EditorToolbar({ readOnly, onOpenMediaSelector }: ToolbarProps) {
   if (readOnly) return null;
 
   return (
     <>
-      {/*<UndoRedo />
-      <Separator />
-      <BlockTypeSelect />
-      <Separator />*/}
       <BoldItalicUnderlineToggles options={["Bold", "Italic", "Underline"]} />
       <Separator />
       <ListsToggle options={["bullet", "number"]} />
       <Separator />
       <CreateLink />
-      <InsertImage />
+      <InsertMediaButton onClick={onOpenMediaSelector} />
       <InsertCodeBlock />
       <InsertTable />
       <InsertThematicBreak />
@@ -153,6 +162,14 @@ export function RichTextEditor({
   const editorRef = useRef<MDXEditorMethods>(null);
   const [error, setError] = useState<Error | null>(null);
   const [editorKey, setEditorKey] = useState(0);
+  const [mediaSelectorOpen, setMediaSelectorOpen] = useState(false);
+
+  const handleMediaInsert = useCallback((media: InsertedMedia) => {
+    const md = media.type === "image"
+      ? `![${media.name}](${media.url})\n`
+      : `[${media.name}](${media.url})\n`;
+    editorRef.current?.insertMarkdown(md);
+  }, []);
 
   // Track whether user has ever focused the editor (for validation UX).
   // We don't need to expose this here — consumers handle validation externally.
@@ -209,7 +226,7 @@ export function RichTextEditor({
           markdown={initialValue}
           onChange={handleChange}
           onBlur={onBlur}
-          onFocus={onFocus}
+          // onFocus={onFocus}
           placeholder={placeholder}
           readOnly={readOnly}
           autoFocus={autoFocus}
@@ -217,7 +234,12 @@ export function RichTextEditor({
           contentEditableClassName="wecan-editor-content"
           plugins={[
             toolbarPlugin({
-              toolbarContents: () => <EditorToolbar readOnly={readOnly} />,
+              toolbarContents: () => (
+                <EditorToolbar
+                  readOnly={readOnly}
+                  onOpenMediaSelector={() => setMediaSelectorOpen(true)}
+                />
+              ),
               toolbarClassName: "wecan-editor-toolbar",
             }),
             headingsPlugin({ allowedHeadingLevels: [1, 2, 3] }),
@@ -241,6 +263,11 @@ export function RichTextEditor({
           ]}
         />
       </div>
+      <MediaSelector
+        open={mediaSelectorOpen}
+        onClose={() => setMediaSelectorOpen(false)}
+        onInsert={handleMediaInsert}
+      />
     </div>
   );
 }
