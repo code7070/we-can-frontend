@@ -1,4 +1,6 @@
-const MEDIA_URL = import.meta.env.VITE_MEDIA_WORKER_URL ?? "https://wecan-media.underline.my.id";
+const MEDIA_URL =
+  import.meta.env.VITE_MEDIA_WORKER_URL ??
+  "https://wecan-media-worker.underline.my.id";
 
 export interface MediaObject {
   key: string;
@@ -44,19 +46,35 @@ export async function uploadMedia(file: File): Promise<UploadedMedia> {
 }
 
 export async function deleteMedia(key: string): Promise<void> {
-  const res = await fetch(`${MEDIA_URL}/api/media/delete/${encodeURIComponent(key)}`, {
-    method: "DELETE",
-  });
+  const res = await fetch(
+    `${MEDIA_URL}/api/media/delete/${encodeURIComponent(key)}`,
+    {
+      method: "DELETE",
+    },
+  );
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`Delete failed (${res.status}): ${text}`);
   }
 }
 
-const IMAGE_EXTS = new Set(["jpg", "jpeg", "png", "gif", "webp", "svg", "avif", "bmp", "ico"]);
+const IMAGE_EXTS = new Set([
+  "jpg",
+  "jpeg",
+  "png",
+  "gif",
+  "webp",
+  "svg",
+  "avif",
+  "bmp",
+  "ico",
+]);
 const VIDEO_EXTS = new Set(["mp4", "webm", "mov", "avi", "mkv", "m4v"]);
 
-export function detectMediaType(nameOrKey: string, contentType?: string | null): "image" | "video" | "other" {
+export function detectMediaType(
+  nameOrKey: string,
+  contentType?: string | null,
+): "image" | "video" | "other" {
   if (contentType) {
     if (contentType.startsWith("image/")) return "image";
     if (contentType.startsWith("video/")) return "video";
