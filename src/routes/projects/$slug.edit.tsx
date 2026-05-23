@@ -3,7 +3,7 @@ import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-q
 import { Suspense, useState } from "react";
 import { ArrowLeft, FolderOpen } from "lucide-react";
 import { projectQueryOptions, updateProject } from "@/api/projects";
-import { useError } from "@/context/error-context";
+import { toast } from "sonner";
 import { FormInput } from "@/components/FormInput";
 import { FormTextarea } from "@/components/FormTextarea";
 import { cn } from "@/lib/utils";
@@ -31,7 +31,6 @@ function EditProjectForm() {
   const { slug } = Route.useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { showError } = useError();
   const { data: project } = useSuspenseQuery(projectQueryOptions(slug));
 
   const [name, setName] = useState(project.name);
@@ -41,10 +40,11 @@ function EditProjectForm() {
   const mutation = useMutation({
     mutationFn: (input: Parameters<typeof updateProject>[1]) => updateProject(slug, input),
     onSuccess: async () => {
+      toast.success("Project updated");
       await queryClient.invalidateQueries({ queryKey: ["project", slug] });
       void navigate({ to: "/projects/$slug", params: { slug } });
     },
-    onError: showError,
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to update project"),
   });
 
   function handleSubmit() {
@@ -62,7 +62,7 @@ function EditProjectForm() {
   const canSubmit = name.trim().length > 0 && !mutation.isPending;
 
   return (
-    <div className="max-w-[720px] mx-auto px-8 pt-8 pb-20">
+    <div className="max-w-[720px] mx-auto px-4 sm:px-8 pt-5 sm:pt-8 pb-20">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1.5 text-sm mb-7">
         <Link

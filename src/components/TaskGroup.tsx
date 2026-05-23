@@ -2,11 +2,11 @@ import { useState, useRef, useEffect } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronDown, Plus, Pencil, Trash2, X, Check } from "lucide-react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { TaskRow } from "./TaskRow";
 import { renameGroup, deleteGroup } from "@/api/projects";
 import { useAuth } from "@/hooks/useAuth";
-import { useError } from "@/context/error-context";
 import type { TaskGroup as TaskGroupType } from "@/api/types";
 
 interface Props {
@@ -22,7 +22,6 @@ export function TaskGroup({ group, projectSlug }: Props) {
   const [deleting, setDeleting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const { isLoggedIn } = useAuth();
-  const { showError } = useError();
   const qc = useQueryClient();
 
   const doneCount = group.tasks.filter((t) => t.isDone).length;
@@ -31,18 +30,20 @@ export function TaskGroup({ group, projectSlug }: Props) {
     mutationFn: () => renameGroup(projectSlug, group.id, editValue.trim()),
     onSuccess: () => {
       setEditing(false);
+      toast.success("Group renamed");
       void qc.invalidateQueries({ queryKey: ["project", projectSlug] });
     },
-    onError: (err) => showError(err),
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to rename group"),
   });
 
   const deleteMutation = useMutation({
     mutationFn: () => deleteGroup(projectSlug, group.id),
     onSuccess: () => {
       setDeleting(false);
+      toast.success("Group deleted");
       void qc.invalidateQueries({ queryKey: ["project", projectSlug] });
     },
-    onError: (err) => showError(err),
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to delete group"),
   });
 
   useEffect(() => {

@@ -40,7 +40,7 @@ export function SearchBar({ onSearch, defaultValue = "" }: Props) {
     <div className="relative w-full max-w-search">
       <Search
         className={cn(
-          "absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors duration-150",
+          "absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 sm:w-5 h-4 sm:h-5 transition-colors duration-150",
           focused ? "text-accent" : "text-text-disabled"
         )}
       />
@@ -53,8 +53,8 @@ export function SearchBar({ onSearch, defaultValue = "" }: Props) {
         onBlur={() => setFocused(false)}
         placeholder="Search tasks, projects, threads…"
         className={cn(
-          "w-full pl-12 pr-4 py-3.5 rounded-xl border-[1.5px]",
-          "text-base text-text-primary placeholder:text-text-disabled bg-surface",
+          "w-full pl-9 sm:pl-12 pr-3 sm:pr-4 py-3 sm:py-3.5 rounded-xl border-[1.5px]",
+          "text-sm sm:text-base text-text-primary placeholder:text-text-disabled bg-surface",
           "outline-none transition-all duration-150",
           focused
             ? "border-accent shadow-[0_0_0_3px_rgba(37,99,235,0.15)]"

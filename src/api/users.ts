@@ -7,6 +7,12 @@ export const usersQueryOptions = queryOptions({
   queryFn: () => apiFetch<User[]>("/users"),
 });
 
+export const meQueryOptions = queryOptions({
+  queryKey: ["me"],
+  queryFn: () => apiFetch<User>("/auth/me"),
+  staleTime: 5 * 60 * 1000,
+});
+
 export function createUser(input: CreateUserInput): Promise<{ user: User }> {
   return apiFetch<{ user: User }>("/users", {
     method: "POST",

@@ -129,6 +129,25 @@ export interface CreatedApiToken extends ApiToken {
 
 export interface SearchResults {
   projects: Project[];
-  tasks: (Task & { project: { name: string; slug: string } })[];
-  comments: (Comment & { task: { id: string; title: string; project: { name: string; slug: string } } })[];
+  tasks: (Task & { project: { name: string; slug: string } | null })[];
+  comments: (Comment & { task: { id: string; title: string; project: { name: string; slug: string } | null } | null })[];
+}
+
+export interface TaskListItem {
+  id: string;
+  title: string;
+  isDone: boolean;
+  dueDate?: string | null;
+  branch?: string | null;
+  updatedAt?: string;
+  project: { id: string; slug: string; name: string } | null;
+  group: { id: string; title: string } | null;
+  assignees: User[];
+  commentCount: number;
+}
+
+export interface TaskListResponse {
+  tasks: TaskListItem[];
+  nextCursor: string | null;
+  total: number;
 }

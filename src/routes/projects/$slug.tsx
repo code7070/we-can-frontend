@@ -14,7 +14,7 @@ import { TaskGroup } from "@/components/TaskGroup";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
-import { useError } from "@/context/error-context";
+import { toast } from "sonner";
 import { getAvatarColor } from "@/lib/avatar-colors";
 import { cn } from "@/lib/utils";
 
@@ -35,16 +35,15 @@ function AddGroupForm({
 }) {
   const [title, setTitle] = useState("");
   const qc = useQueryClient();
-  const { showError } = useError();
-
   const mutation = useMutation({
     mutationFn: () => createGroup(slug, title.trim(), sortOrder),
     onSuccess: () => {
+      toast.success("Group created");
       setTitle("");
       onDone?.();
       void qc.invalidateQueries({ queryKey: ["project", slug] });
     },
-    onError: (err) => showError(err),
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to create group"),
   });
 
   function handleSubmit() {
@@ -126,13 +125,13 @@ function ProjectContent() {
   const myDoneTasks = filteredGroups.reduce((acc, g) => acc + g.tasks.filter((t) => t.isDone).length, 0);
 
   return (
-    <div className="max-w-[720px] mx-auto px-6 py-8">
-      <div className="flex items-start justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-xl font-bold text-text-primary tracking-tight">
+    <div className="max-w-[720px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <div className="flex items-start justify-between gap-4 mb-6 sm:mb-8">
+        <div className="min-w-0">
+          <h1 className="text-lg sm:text-xl font-bold text-text-primary tracking-tight truncate">
             {project.name}
           </h1>
-          <p className="text-sm text-text-secondary mt-1">
+          <p className="text-xs sm:text-sm text-text-secondary mt-1">
             {filter === "my" ? (
               <>{myDoneTasks} of {myTotalTasks} my tasks completed</>
             ) : (
@@ -181,24 +180,25 @@ function ProjectContent() {
           </div>
         </div>
         {isLoggedIn && (
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <Link
               to="/projects/$slug/edit"
               params={{ slug }}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold
+              className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold
                          text-text-secondary border border-border hover:bg-[#F4F4F5] transition-colors duration-150"
             >
-              <Settings size={15} />
-              Edit
+              <Settings size={13} className="sm:size-[15]" />
+              <span className="hidden sm:inline">Edit</span>
             </Link>
             <Link
               to="/projects/$slug/tasks/new"
               params={{ slug }}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold
+              className="inline-flex items-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold
                          bg-accent hover:bg-accent-text text-white transition-colors duration-150"
             >
-              <Plus size={15} />
-              New task
+              <Plus size={13} className="sm:size-[15]" />
+              <span className="hidden sm:inline">New task</span>
+              <span className="sm:hidden">New</span>
             </Link>
           </div>
         )}
@@ -234,12 +234,20 @@ function ProjectContent() {
 
       {/* Groups — each in its own card */}
       {filteredGroups.length === 0 ? (
-        <div className="flex flex-col border border-border rounded-xl overflow-hidden bg-surface">
-          <p className="text-sm text-text-secondary text-center py-8">
+        <div className="border border-dashed border-border rounded-xl bg-surface py-12 px-6 text-center">
+          <p className="text-sm text-text-secondary">
             {filter === "my"
               ? "No tasks assigned to you in this project."
               : "No task groups yet."}
           </p>
+          {filter === "all" && isLoggedIn && (
+            <button
+              onClick={() => setIsAddingGroup(true)}
+              className="mt-2 text-sm font-semibold text-accent hover:text-accent-text transition-colors duration-150"
+            >
+              Add a group to get started
+            </button>
+          )}
         </div>
       ) : (
         <div className="flex flex-col gap-3">
@@ -282,13 +290,13 @@ function ProjectContent() {
 
 function ProjectSkeleton() {
   return (
-    <div className="max-w-[720px] mx-auto px-6 py-8">
-      <div className="flex items-start justify-between mb-8">
+    <div className="max-w-[720px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <div className="flex items-start justify-between mb-6 sm:mb-8">
         <div className="flex flex-col gap-2">
-          <Skeleton className="h-7 w-56" />
-          <Skeleton className="h-4 w-36" />
+          <Skeleton className="h-6 sm:h-7 w-48 sm:w-56" />
+          <Skeleton className="h-3 sm:h-4 w-28 sm:w-36" />
         </div>
-        <Skeleton className="h-9 w-28 rounded-lg" />
+        <Skeleton className="h-8 sm:h-9 w-20 sm:w-28 rounded-lg" />
       </div>
       <div className="flex flex-col border border-border rounded-xl overflow-hidden">
         {Array.from({ length: 6 }).map((_, i) => (

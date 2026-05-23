@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { CornerDownRight, CornerUpRight, MessageSquareText, Clock } from "lucide-react";
 import { apiFetch } from "@/api/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -58,6 +59,7 @@ export function TaskRow({ task, projectSlug }: Props) {
       void qc.invalidateQueries({ queryKey: ["project"] });
       void qc.invalidateQueries({ queryKey: ["task", task.id] });
     },
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to update task"),
   });
 
   const taskDetailQuery = useQuery({
@@ -76,41 +78,60 @@ export function TaskRow({ task, projectSlug }: Props) {
       {/* ── Task Row ── */}
       <div
         className={cn(
-          "flex items-center gap-3 px-4 py-2.5 min-h-[44px] transition-colors duration-150 group",
+          "px-4 py-2.5 transition-colors duration-150 group",
           isExpanded ? "bg-[#F4F4F5]" : "hover:bg-[#F4F4F5]"
         )}
       >
-        <Checkbox
-          checked={task.isDone}
-          onCheckedChange={(v) => isLoggedIn && toggle.mutate(!!v)}
-          disabled={!isLoggedIn || toggle.isPending}
-          className="shrink-0"
-        />
+        <div className="flex items-start sm:items-center gap-3">
+          <Checkbox
+            checked={task.isDone}
+            onCheckedChange={(v) => isLoggedIn && toggle.mutate(!!v)}
+            disabled={!isLoggedIn || toggle.isPending}
+            className="shrink-0 mt-0.5 sm:mt-0"
+          />
 
-        <button
-          onClick={() => setIsExpanded((v) => !v)}
-          className={cn(
-            "text-md flex-1 truncate text-left transition-colors duration-150 cursor-pointer",
-            task.isDone
-              ? "line-through text-text-secondary"
-              : "text-text-primary hover:text-accent"
+          <button
+            onClick={() => setIsExpanded((v) => !v)}
+            className={cn(
+              "text-md flex-1 min-w-0 text-left transition-colors duration-150 cursor-pointer",
+              task.isDone
+                ? "line-through text-text-secondary"
+                : "text-text-primary hover:text-accent"
+            )}
+          >
+            {task.title}
+          </button>
+
+          {task.assignees.length > 0 && (
+            <div className="hidden sm:flex shrink-0">
+              <AssigneeAvatars assignees={task.assignees} />
+            </div>
           )}
-        >
-          {task.title}
-        </button>
 
-        {task.assignees.length > 0 && (
-          <AssigneeAvatars assignees={task.assignees} />
-        )}
+          {task.dueDate && (
+            <span className="hidden sm:inline text-xs text-text-secondary whitespace-nowrap shrink-0">
+              {new Date(task.dueDate).toLocaleDateString(undefined, {
+                month: "short",
+                day: "numeric",
+              })}
+            </span>
+          )}
+        </div>
 
-        {task.dueDate && (
-          <span className="text-xs text-text-secondary whitespace-nowrap shrink-0">
-            {new Date(task.dueDate).toLocaleDateString(undefined, {
-              month: "short",
-              day: "numeric",
-            })}
-          </span>
-        )}
+        {/* Mobile: metadata row below */}
+        <div className="flex sm:hidden items-center gap-2 mt-1.5 pl-7">
+          {task.assignees.length > 0 && (
+            <AssigneeAvatars assignees={task.assignees} />
+          )}
+          {task.dueDate && (
+            <span className="text-[11px] text-text-secondary">
+              Due {new Date(task.dueDate).toLocaleDateString(undefined, {
+                month: "short",
+                day: "numeric",
+              })}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* ── Expanded Section (Variant B — Conversational) ── */}

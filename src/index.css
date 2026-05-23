@@ -103,6 +103,16 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  /* Safe area insets for modern mobile browsers */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Prevent text size adjustment on orientation change */
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
   /* Markdown rendered content — default typography */
   .markdown-content p {
     margin: 0 0 8px;

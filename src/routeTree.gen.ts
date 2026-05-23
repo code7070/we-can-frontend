@@ -16,6 +16,9 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DocumentationRouteImport } from './routes/documentation'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TasksIndexRouteImport } from './routes/tasks/index'
+import { Route as ProjectsIndexRouteImport } from './routes/projects/index'
+import { Route as TasksNewRouteImport } from './routes/tasks/new'
 import { Route as ProjectsNewRouteImport } from './routes/projects/new'
 import { Route as ProjectsSlugRouteImport } from './routes/projects/$slug'
 import { Route as ProjectsSlugEditRouteImport } from './routes/projects/$slug.edit'
@@ -57,6 +60,21 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TasksIndexRoute = TasksIndexRouteImport.update({
+  id: '/tasks/',
+  path: '/tasks/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectsIndexRoute = ProjectsIndexRouteImport.update({
+  id: '/projects/',
+  path: '/projects/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TasksNewRoute = TasksNewRouteImport.update({
+  id: '/tasks/new',
+  path: '/tasks/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProjectsNewRoute = ProjectsNewRouteImport.update({
   id: '/projects/new',
   path: '/projects/new',
@@ -93,6 +111,9 @@ export interface FileRoutesByFullPath {
   '/users': typeof UsersRoute
   '/projects/$slug': typeof ProjectsSlugRouteWithChildren
   '/projects/new': typeof ProjectsNewRoute
+  '/tasks/new': typeof TasksNewRoute
+  '/projects/': typeof ProjectsIndexRoute
+  '/tasks/': typeof TasksIndexRoute
   '/projects/$slug/edit': typeof ProjectsSlugEditRoute
   '/projects/$slug/tasks/$taskId': typeof ProjectsSlugTasksTaskIdRoute
   '/projects/$slug/tasks/new': typeof ProjectsSlugTasksNewRoute
@@ -107,6 +128,9 @@ export interface FileRoutesByTo {
   '/users': typeof UsersRoute
   '/projects/$slug': typeof ProjectsSlugRouteWithChildren
   '/projects/new': typeof ProjectsNewRoute
+  '/tasks/new': typeof TasksNewRoute
+  '/projects': typeof ProjectsIndexRoute
+  '/tasks': typeof TasksIndexRoute
   '/projects/$slug/edit': typeof ProjectsSlugEditRoute
   '/projects/$slug/tasks/$taskId': typeof ProjectsSlugTasksTaskIdRoute
   '/projects/$slug/tasks/new': typeof ProjectsSlugTasksNewRoute
@@ -122,6 +146,9 @@ export interface FileRoutesById {
   '/users': typeof UsersRoute
   '/projects/$slug': typeof ProjectsSlugRouteWithChildren
   '/projects/new': typeof ProjectsNewRoute
+  '/tasks/new': typeof TasksNewRoute
+  '/projects/': typeof ProjectsIndexRoute
+  '/tasks/': typeof TasksIndexRoute
   '/projects/$slug/edit': typeof ProjectsSlugEditRoute
   '/projects/$slug/tasks/$taskId': typeof ProjectsSlugTasksTaskIdRoute
   '/projects/$slug/tasks/new': typeof ProjectsSlugTasksNewRoute
@@ -138,6 +165,9 @@ export interface FileRouteTypes {
     | '/users'
     | '/projects/$slug'
     | '/projects/new'
+    | '/tasks/new'
+    | '/projects/'
+    | '/tasks/'
     | '/projects/$slug/edit'
     | '/projects/$slug/tasks/$taskId'
     | '/projects/$slug/tasks/new'
@@ -152,6 +182,9 @@ export interface FileRouteTypes {
     | '/users'
     | '/projects/$slug'
     | '/projects/new'
+    | '/tasks/new'
+    | '/projects'
+    | '/tasks'
     | '/projects/$slug/edit'
     | '/projects/$slug/tasks/$taskId'
     | '/projects/$slug/tasks/new'
@@ -166,6 +199,9 @@ export interface FileRouteTypes {
     | '/users'
     | '/projects/$slug'
     | '/projects/new'
+    | '/tasks/new'
+    | '/projects/'
+    | '/tasks/'
     | '/projects/$slug/edit'
     | '/projects/$slug/tasks/$taskId'
     | '/projects/$slug/tasks/new'
@@ -181,6 +217,9 @@ export interface RootRouteChildren {
   UsersRoute: typeof UsersRoute
   ProjectsSlugRoute: typeof ProjectsSlugRouteWithChildren
   ProjectsNewRoute: typeof ProjectsNewRoute
+  TasksNewRoute: typeof TasksNewRoute
+  ProjectsIndexRoute: typeof ProjectsIndexRoute
+  TasksIndexRoute: typeof TasksIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -232,6 +271,27 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tasks/': {
+      id: '/tasks/'
+      path: '/tasks'
+      fullPath: '/tasks/'
+      preLoaderRoute: typeof TasksIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects/': {
+      id: '/projects/'
+      path: '/projects'
+      fullPath: '/projects/'
+      preLoaderRoute: typeof ProjectsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tasks/new': {
+      id: '/tasks/new'
+      path: '/tasks/new'
+      fullPath: '/tasks/new'
+      preLoaderRoute: typeof TasksNewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/projects/new': {
@@ -298,6 +358,9 @@ const rootRouteChildren: RootRouteChildren = {
   UsersRoute: UsersRoute,
   ProjectsSlugRoute: ProjectsSlugRouteWithChildren,
   ProjectsNewRoute: ProjectsNewRoute,
+  TasksNewRoute: TasksNewRoute,
+  ProjectsIndexRoute: ProjectsIndexRoute,
+  TasksIndexRoute: TasksIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

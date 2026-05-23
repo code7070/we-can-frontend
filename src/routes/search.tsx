@@ -30,7 +30,7 @@ function SearchPage() {
       data.comments.length > 0);
 
   return (
-    <div className="max-w-content mx-auto px-6 py-8 flex flex-col gap-6">
+    <div className="max-w-content mx-auto px-4 sm:px-6 py-6 sm:py-8 flex flex-col gap-5 sm:gap-6">
       <SearchBar defaultValue={q} onSearch={handleSearch} />
 
       {isLoading && q.length > 1 && (

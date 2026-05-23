@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { projectQueryOptions } from "@/api/projects";
 import { createTask } from "@/api/tasks";
-import { useError } from "@/context/error-context";
+import { toast } from "sonner";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { FormInput } from "@/components/FormInput";
 import { getAvatarColor } from "@/lib/avatar-colors";
@@ -452,7 +452,6 @@ function CreateTaskForm() {
   const { group: preselectedGroupTitle } = Route.useSearch();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { showError } = useError();
   const { data: project } = useSuspenseQuery(projectQueryOptions(slug));
 
   // Pre-select group by title from search param
@@ -485,10 +484,11 @@ function CreateTaskForm() {
         linkedTaskIds: linkedTaskIds.length > 0 ? linkedTaskIds : undefined,
       }),
     onSuccess: async () => {
+      toast.success("Task created");
       await queryClient.invalidateQueries({ queryKey: ["project", slug] });
       void navigate({ to: "/projects/$slug", params: { slug } });
     },
-    onError: showError,
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to create task"),
   });
 
   function handleSubmit() {
@@ -514,7 +514,7 @@ function CreateTaskForm() {
   const canSubmit = title.trim().length > 0 && groupId !== "" && !mutation.isPending;
 
   return (
-    <div className="max-w-[720px] mx-auto px-8 pt-8 pb-20">
+    <div className="max-w-[720px] mx-auto px-4 sm:px-8 pt-5 sm:pt-8 pb-20">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1.5 text-sm mb-7">
         <Link
@@ -636,7 +636,7 @@ function CreateTaskForm() {
 
 function CreateTaskPage() {
   return (
-    <Suspense fallback={<div className="max-w-[720px] mx-auto px-8 pt-8"><div className="h-8 w-48 bg-border rounded animate-pulse mb-8" /></div>}>
+    <Suspense fallback={<div className="max-w-[720px] mx-auto px-4 sm:px-8 pt-5 sm:pt-8"><div className="h-8 w-48 bg-border rounded animate-pulse mb-8" /></div>}>
       <CreateTaskForm />
     </Suspense>
   );

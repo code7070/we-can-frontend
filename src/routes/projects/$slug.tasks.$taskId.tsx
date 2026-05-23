@@ -6,7 +6,7 @@ import { taskQueryOptions } from "@/api/tasks";
 import { usersQueryOptions } from "@/api/users";
 import { apiFetch } from "@/api/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useError } from "@/context/error-context";
+import { toast } from "sonner";
 import { AssigneeAvatars } from "@/components/AssigneeAvatars";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { MarkdownRenderer } from "@/components/MarkdownRenderer";
@@ -273,7 +273,6 @@ function TaskDetailContent() {
   const { slug, taskId } = Route.useParams();
   const { data: task } = useSuspenseQuery(taskQueryOptions(taskId));
   const { isLoggedIn } = useAuth();
-  const { showError } = useError();
   const qc = useQueryClient();
   const [comment, setComment] = useState("");
   const [commentKey, setCommentKey] = useState(0);
@@ -308,11 +307,12 @@ function TaskDetailContent() {
         body: JSON.stringify(body),
       }),
     onSuccess: () => {
+      toast.success("Task updated");
       void qc.invalidateQueries({ queryKey: ["task", taskId] });
       void qc.invalidateQueries({ queryKey: ["project"] });
       setEditMode(false);
     },
-    onError: showError,
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to update task"),
   });
 
   function enterEditMode() {
@@ -355,7 +355,7 @@ function TaskDetailContent() {
       void qc.invalidateQueries({ queryKey: ["project"] });
       void qc.invalidateQueries({ queryKey: ["task", taskId] });
     },
-    onError: showError,
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to update task"),
   });
 
   const addComment = useMutation({
@@ -365,13 +365,14 @@ function TaskDetailContent() {
         body: JSON.stringify({ body }),
       }),
     onSuccess: () => {
+      toast.success("Comment added");
       void qc.invalidateQueries({ queryKey: ["task", taskId] });
       setCommentKey((k) => k + 1);
       setComment("");
       setCommentEmpty(true);
       setCommentAttachments([]);
     },
-    onError: showError,
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to add comment"),
   });
 
   function handleCommentSubmit(e: React.FormEvent) {
@@ -387,7 +388,7 @@ function TaskDetailContent() {
   }, []);
 
   return (
-    <div className="max-w-[720px] mx-auto px-8 pt-8 pb-20">
+    <div className="max-w-[720px] mx-auto px-4 sm:px-8 pt-5 sm:pt-8 pb-20">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1.5 text-sm mb-7">
         <Link to="/" className="text-accent-text font-medium hover:underline">Home</Link>
@@ -835,7 +836,7 @@ function TaskDetailContent() {
 
 function TaskDetailSkeleton() {
   return (
-    <div className="max-w-[720px] mx-auto px-8 pt-8 flex flex-col gap-6">
+    <div className="max-w-[720px] mx-auto px-4 sm:px-8 pt-5 sm:pt-8 flex flex-col gap-6">
       <Skeleton className="h-4 w-48" />
       <div className="flex items-start gap-3.5">
         <Skeleton className="w-6 h-6 rounded-full shrink-0 mt-0.5" />

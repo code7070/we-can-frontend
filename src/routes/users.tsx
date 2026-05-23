@@ -3,7 +3,7 @@ import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-q
 import { Suspense, useState } from "react";
 import { UserPlus, X } from "lucide-react";
 import { usersQueryOptions, createUser } from "@/api/users";
-import { useError } from "@/context/error-context";
+import { toast } from "sonner";
 import { ApiError } from "@/lib/api-error";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -70,7 +70,9 @@ function UsersList() {
 
   if (users.length === 0) {
     return (
-      <p className="text-sm text-text-secondary py-6 text-center">No users yet.</p>
+      <div className="py-12 text-center">
+        <p className="text-sm text-text-secondary">No users yet.</p>
+      </div>
     );
   }
 
@@ -91,14 +93,16 @@ function UsersList() {
 
 function UsersSkeleton() {
   return (
-    <div className="flex flex-col gap-3 py-3">
-      {[1, 2, 3].map((i) => (
-        <div key={i} className="flex items-center gap-4">
-          <Skeleton className="w-8 h-8 rounded-full" />
+    <div className="flex flex-col py-2">
+      {[1, 2, 3, 4].map((i) => (
+        <div key={i} className="flex items-center gap-4 py-3 border-b border-border last:border-0">
+          <Skeleton className="w-8 h-8 rounded-full shrink-0" />
           <div className="flex-1 flex flex-col gap-1.5">
             <Skeleton className="h-4 w-32 rounded" />
             <Skeleton className="h-3 w-48 rounded" />
           </div>
+          <Skeleton className="h-5 w-12 rounded-full shrink-0" />
+          <Skeleton className="h-3 w-20 rounded shrink-0 hidden sm:block" />
         </div>
       ))}
     </div>
@@ -106,7 +110,6 @@ function UsersSkeleton() {
 }
 
 function CreateUserModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
-  const { showError } = useError();
   const queryClient = useQueryClient();
   const [form, setForm] = useState({ name: "", email: "", password: "", role: "engineer" as UserRole });
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -114,6 +117,7 @@ function CreateUserModal({ onClose, onSuccess }: { onClose: () => void; onSucces
   const mutation = useMutation({
     mutationFn: () => createUser({ ...form }),
     onSuccess: () => {
+      toast.success("User created");
       void queryClient.invalidateQueries({ queryKey: ["users"] });
       onSuccess();
       onClose();
@@ -122,7 +126,7 @@ function CreateUserModal({ onClose, onSuccess }: { onClose: () => void; onSucces
       if (err instanceof ApiError && err.fields) {
         setFieldErrors(Object.fromEntries(Object.entries(err.fields).map(([k, v]) => [k, v[0]])));
       } else {
-        showError(err);
+        toast.error(err instanceof Error ? err.message : "Failed to create user");
       }
     },
   });
@@ -241,12 +245,13 @@ function UsersPage() {
   }
 
   return (
-    <div className="max-w-content mx-auto px-6 py-10">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-xl font-semibold text-text-primary">Users</h1>
-        <Button onClick={() => setShowModal(true)} className="gap-1.5">
+    <div className="max-w-content mx-auto px-4 sm:px-6 py-6 sm:py-10">
+      <div className="flex items-center justify-between gap-3 mb-6 sm:mb-8">
+        <h1 className="text-lg sm:text-xl font-semibold text-text-primary">Users</h1>
+        <Button onClick={() => setShowModal(true)} className="gap-1.5 shrink-0">
           <UserPlus size={14} />
-          New user
+          <span className="hidden sm:inline">New user</span>
+          <span className="sm:hidden">New</span>
         </Button>
       </div>
 
@@ -256,7 +261,7 @@ function UsersPage() {
         </div>
       )}
 
-      <div className="bg-surface border border-border rounded-lg px-5">
+      <div className="bg-surface border border-border rounded-lg px-3 sm:px-5">
         <Suspense fallback={<UsersSkeleton />}>
           <UsersList />
         </Suspense>

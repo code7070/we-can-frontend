@@ -4,7 +4,7 @@ import { Suspense, useState } from "react";
 import { Key, Plus, Copy, Trash2, Check, BookOpen } from "lucide-react";
 import { tokensQueryOptions, createToken, revokeToken } from "@/api/tokens";
 import { useAuth } from "@/hooks/useAuth";
-import { useError } from "@/context/error-context";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { ApiToken, CreatedApiToken } from "@/api/types";
@@ -107,9 +107,10 @@ function TokensList({ onRevoke }: { onRevoke: (id: string) => void }) {
 
   if (tokens.length === 0) {
     return (
-      <p className="text-sm text-text-secondary py-6 text-center">
-        No API tokens yet. Create one to access the API programmatically.
-      </p>
+      <div className="py-12 text-center">
+        <p className="text-sm text-text-secondary">No API tokens yet.</p>
+        <p className="text-xs text-text-disabled mt-1">Create one above to access the API programmatically.</p>
+      </div>
     );
   }
 
@@ -124,9 +125,17 @@ function TokensList({ onRevoke }: { onRevoke: (id: string) => void }) {
 
 function TokensSkeleton() {
   return (
-    <div className="flex flex-col gap-3 py-2">
-      {[1, 2].map((i) => (
-        <Skeleton key={i} className="h-10 w-full rounded-md" />
+    <div className="flex flex-col py-2">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="flex items-center gap-4 py-3 border-b border-border last:border-0">
+          <Skeleton className="w-4 h-4 rounded shrink-0" />
+          <div className="flex-1 flex flex-col gap-1.5">
+            <Skeleton className="h-4 w-36 rounded" />
+            <Skeleton className="h-3 w-52 rounded" />
+          </div>
+          <Skeleton className="h-3 w-16 rounded shrink-0" />
+          <Skeleton className="w-6 h-6 rounded shrink-0" />
+        </div>
       ))}
     </div>
   );
@@ -135,7 +144,6 @@ function TokensSkeleton() {
 
 function SettingsPage() {
   const { token } = useAuth();
-  const { showError } = useError();
   const queryClient = useQueryClient();
   const [newTokenName, setNewTokenName] = useState("");
   const [createdToken, setCreatedToken] = useState<CreatedApiToken | null>(null);
@@ -143,19 +151,21 @@ function SettingsPage() {
   const createMutation = useMutation({
     mutationFn: (name: string) => createToken(name),
     onSuccess: (data) => {
+      toast.success("API token created");
       setCreatedToken(data);
       setNewTokenName("");
       void queryClient.invalidateQueries({ queryKey: ["api-tokens"] });
     },
-    onError: (err) => showError(err),
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to create token"),
   });
 
   const revokeMutation = useMutation({
     mutationFn: (id: string) => revokeToken(id),
     onSuccess: () => {
+      toast.success("Token revoked");
       void queryClient.invalidateQueries({ queryKey: ["api-tokens"] });
     },
-    onError: (err) => showError(err),
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to revoke token"),
   });
 
   function handleCreate(e: React.FormEvent) {
@@ -181,8 +191,8 @@ function SettingsPage() {
   } catch {}
 
   return (
-    <div className="max-w-content mx-auto px-6 py-10">
-      <h1 className="text-xl font-semibold text-text-primary mb-8">Settings</h1>
+    <div className="max-w-content mx-auto px-4 sm:px-6 py-6 sm:py-10">
+      <h1 className="text-lg sm:text-xl font-semibold text-text-primary mb-6 sm:mb-8">Settings</h1>
 
       {/* Profile section */}
       <section className="mb-10">
