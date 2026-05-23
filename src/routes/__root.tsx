@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { ErrorProvider } from "@/context/error-context";
 import { ErrorDialog } from "@/components/ErrorDialog";
 import { useState, useRef, useEffect } from "react";
-import { ChevronDown, Settings, Users, LogOut } from "lucide-react";
+import { ChevronDown, Settings, Users, LogOut, BookOpen } from "lucide-react";
 import type { QueryClient } from "@tanstack/react-query";
 
 interface RouterContext {
@@ -51,6 +51,14 @@ function UserMenu({ onLogout }: { onLogout: () => void }) {
           >
             <Settings size={14} className="text-text-secondary" />
             Settings
+          </Link>
+          <Link
+            to="/documentation"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-2.5 px-3 py-2 text-sm text-text-primary hover:bg-hover transition-colors"
+          >
+            <BookOpen size={14} className="text-text-secondary" />
+            API Docs
           </Link>
           <div className="border-t border-border my-1" />
           <button

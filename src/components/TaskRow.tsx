@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { MessageSquareText, FileText, ExternalLink, CornerDownRight } from "lucide-react";
+import { CornerDownRight, CornerUpRight, MessageSquareText, Clock } from "lucide-react";
 import { apiFetch } from "@/api/client";
 import { useAuth } from "@/hooks/useAuth";
 import { AssigneeAvatars } from "./AssigneeAvatars";
@@ -16,11 +16,37 @@ interface Props {
   projectSlug: string;
 }
 
+function formatDueChip(dueDate: string): { label: string; tone: "warn" | "danger" | "muted" } {
+  const due = new Date(dueDate);
+  const now = new Date();
+  const diffMs = due.getTime() - now.getTime();
+  const days = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  if (days < 0) return { label: `${Math.abs(days)}d overdue`, tone: "danger" };
+  if (days === 0) return { label: "Due today", tone: "danger" };
+  if (days <= 7) return { label: `Due in ${days}d`, tone: "warn" };
+  return {
+    label: `Due ${due.toLocaleDateString(undefined, { month: "short", day: "numeric" })}`,
+    tone: "muted",
+  };
+}
+
+function timeAgo(iso: string): string {
+  const then = new Date(iso).getTime();
+  const diff = Date.now() - then;
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
 export function TaskRow({ task, projectSlug }: Props) {
   const { isLoggedIn } = useAuth();
   const qc = useQueryClient();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [activePanel, setActivePanel] = useState<"thread" | "details" | null>(null);
 
   const toggle = useMutation({
     mutationFn: (isDone: boolean) =>
@@ -34,32 +60,16 @@ export function TaskRow({ task, projectSlug }: Props) {
     },
   });
 
-  // Lazy-fetch task detail only when panel is open
   const taskDetailQuery = useQuery({
     ...taskQueryOptions(task.id),
-    enabled: activePanel !== null,
+    enabled: isExpanded,
   });
 
-  function handleTitleClick() {
-    if (isExpanded) {
-      setActivePanel(null);
-      setIsExpanded(false);
-    } else {
-      setIsExpanded(true);
-    }
-  }
-
-  function handlePanelToggle(panel: "thread" | "details") {
-    if (!isExpanded) {
-      setIsExpanded(true);
-      setActivePanel(panel);
-    } else {
-      setActivePanel((prev) => (prev === panel ? null : panel));
-    }
-  }
-
-  const lastComment =
-    taskDetailQuery.data?.thread?.[taskDetailQuery.data.thread.length - 1] ?? null;
+  const detail = taskDetailQuery.data;
+  const lastComment = detail?.thread?.[detail.thread.length - 1] ?? null;
+  const linkedCount = detail?.linkedTasks?.length ?? 0;
+  const commentCount = task.commentCount ?? detail?.thread?.length ?? 0;
+  const dueChip = task.dueDate && !task.isDone ? formatDueChip(task.dueDate) : null;
 
   return (
     <div>
@@ -78,7 +88,7 @@ export function TaskRow({ task, projectSlug }: Props) {
         />
 
         <button
-          onClick={handleTitleClick}
+          onClick={() => setIsExpanded((v) => !v)}
           className={cn(
             "text-md flex-1 truncate text-left transition-colors duration-150 cursor-pointer",
             task.isDone
@@ -103,166 +113,113 @@ export function TaskRow({ task, projectSlug }: Props) {
         )}
       </div>
 
-      {/* ── Expanded Section (aligned with title text) ── */}
+      {/* ── Expanded Section (Variant B — Conversational) ── */}
       {isExpanded && (
         <div className="border-t border-border bg-[#FAFAFA]">
-          {/* Action bar */}
-          <div className="flex items-center gap-3 px-4 py-2">
-            {/* Spacer — matches checkbox width so content aligns with title */}
+          <div className="flex gap-3 px-4 py-3">
+            {/* Spacer matches checkbox + gap so content aligns with title */}
             <div className="w-5 shrink-0" />
-
-            {/* ↳ enter indicator — visual cue that this section extends from the task */}
             <CornerDownRight
               size={14}
-              className="text-text-disabled shrink-0"
+              className="text-text-disabled shrink-0 mt-1"
               strokeWidth={1.5}
               aria-hidden
             />
 
-            {/* Action buttons */}
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => handlePanelToggle("thread")}
-                className={cn(
-                  "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors duration-150",
-                    activePanel === "thread"
-                      ? "bg-accent text-white"
-                      : "text-text-secondary hover:bg-accent/80 hover:text-white"
-                )}
-              >
-                <MessageSquareText size={14} strokeWidth={1.5} />
-                <span>Latest Comment</span>
-              </button>
+            <div className="flex-1 min-w-0 space-y-3">
+              {/* Chips row */}
+              {(dueChip || linkedCount > 0 || commentCount > 0) && (
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {dueChip && (
+                    <span
+                      className={cn(
+                        "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium",
+                        dueChip.tone === "danger" && "bg-[#FEE2E2] text-[#DC2626]",
+                        dueChip.tone === "warn" && "bg-[#FEF3C7] text-[#D97706]",
+                        dueChip.tone === "muted" && "bg-[#F4F4F5] text-text-secondary"
+                      )}
+                    >
+                      <Clock size={11} strokeWidth={2} />
+                      {dueChip.label}
+                    </span>
+                  )}
+                  {linkedCount > 0 && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-[#F4F4F5] text-text-secondary">
+                      <CornerUpRight size={11} strokeWidth={2} />
+                      {linkedCount} linked
+                    </span>
+                  )}
+                  {commentCount > 0 && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-[#F4F4F5] text-text-secondary">
+                      <MessageSquareText size={11} strokeWidth={2} />
+                      {commentCount} comment{commentCount > 1 ? "s" : ""}
+                    </span>
+                  )}
+                </div>
+              )}
 
-              <button
-                onClick={() => handlePanelToggle("details")}
-                className={cn(
-                  "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors duration-150",
-                    activePanel === "details"
-                      ? "bg-accent text-white"
-                      : "text-text-secondary hover:bg-accent/80 hover:text-white"
-                )}
+              {/* Description block */}
+              {taskDetailQuery.isLoading ? (
+                <div className="space-y-1.5">
+                  <div className="h-2.5 w-16 bg-[#F4F4F5] rounded animate-pulse" />
+                  <div className="h-3 w-full bg-[#F4F4F5] rounded animate-pulse" />
+                  <div className="h-3 w-2/3 bg-[#F4F4F5] rounded animate-pulse" />
+                </div>
+              ) : detail?.description ? (
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold tracking-wider text-text-disabled uppercase">
+                    Description
+                  </p>
+                  <div className="line-clamp-2 text-sm text-[#3F3F46]">
+                    <MarkdownRenderer content={detail.description} />
+                  </div>
+                </div>
+              ) : null}
+
+              {/* Divider */}
+              {(detail?.description || taskDetailQuery.isLoading) && (
+                <div className="h-px bg-[#F4F4F5]" />
+              )}
+
+              {/* Comment bubble */}
+              {taskDetailQuery.isLoading ? (
+                <div className="rounded-lg border border-border bg-white p-3 space-y-1.5">
+                  <div className="h-3 w-32 bg-[#F4F4F5] rounded animate-pulse" />
+                  <div className="h-3 w-full bg-[#F4F4F5] rounded animate-pulse" />
+                </div>
+              ) : lastComment ? (
+                <div className="rounded-lg border border-border bg-white p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-semibold text-text-primary">
+                      {lastComment.author.name}
+                    </span>
+                    <span className="text-xs text-text-disabled">
+                      · {timeAgo(lastComment.createdAt)}
+                    </span>
+                  </div>
+                  <div className="line-clamp-2 text-sm text-text-secondary">
+                    <MarkdownRenderer content={lastComment.body} />
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs text-text-disabled italic">No comments yet.</p>
+              )}
+
+              {/* Composer / open task */}
+              <Link
+                to="/projects/$slug/tasks/$taskId"
+                params={{ slug: projectSlug, taskId: task.id }}
+                className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-border bg-white hover:border-accent hover:bg-accent/5 transition-colors duration-150 group/composer"
               >
-                <FileText size={14} strokeWidth={1.5} />
-                <span>Task Details</span>
-              </button>
+                <span className="text-sm text-text-disabled">
+                  Reply or @mention…
+                </span>
+                <span className="text-xs font-medium text-accent group-hover/composer:text-accent-text whitespace-nowrap">
+                  Open task →
+                </span>
+              </Link>
             </div>
           </div>
-
-          {/* Panel content (only when active) */}
-          {activePanel && (
-            <div className="flex gap-3 px-4 pb-3">
-              {/* Same spacer as action bar */}
-              <div className="w-5 shrink-0" />
-
-              {/* Push content to align with button text (↳ width + gap-3) */}
-              <div className="pl-[26px] flex-1 min-w-0 space-y-2">
-                {/* Thread panel */}
-                {activePanel === "thread" && (
-                  <div>
-                    {taskDetailQuery.isLoading ? (
-                      <p className="text-xs text-text-disabled animate-pulse">
-                        Loading comment...
-                      </p>
-                    ) : lastComment ? (
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-medium text-text-primary">
-                            {lastComment.author.name}
-                          </span>
-                          <span className="text-xs text-text-disabled">
-                            {new Date(lastComment.createdAt).toLocaleDateString(
-                              undefined,
-                              {
-                                month: "short",
-                                day: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              }
-                            )}
-                          </span>
-                        </div>
-                        <div className="line-clamp-2 text-sm text-text-secondary">
-                          <MarkdownRenderer content={lastComment.body} />
-                        </div>
-                      </div>
-                    ) : (
-                      <p className="text-xs text-text-disabled">
-                        No comments yet.
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {/* Details panel */}
-                {activePanel === "details" && (
-                  <div>
-                    {taskDetailQuery.isLoading ? (
-                      <p className="text-xs text-text-disabled animate-pulse">
-                        Loading details...
-                      </p>
-                    ) : (
-                      <div className="space-y-1.5">
-                        {taskDetailQuery.data?.description && (
-                          <div className="line-clamp-2 text-sm text-text-secondary">
-                            <MarkdownRenderer content={taskDetailQuery.data.description} />
-                          </div>
-                        )}
-
-                        <div className="flex items-center gap-3 text-xs text-text-secondary">
-                          {task.assignees.length > 0 && (
-                            <span>
-                              {task.assignees.length}{" "}
-                              assignee{task.assignees.length > 1 ? "s" : ""}
-                            </span>
-                          )}
-                          {task.dueDate && (
-                            <span>
-                              Due{" "}
-                              {new Date(task.dueDate).toLocaleDateString(
-                                undefined,
-                                { month: "short", day: "numeric" }
-                              )}
-                            </span>
-                          )}
-                          {task.commentCount !== undefined &&
-                            task.commentCount > 0 && (
-                              <span>
-                                {task.commentCount}{" "}
-                                comment{task.commentCount > 1 ? "s" : ""}
-                              </span>
-                            )}
-                        </div>
-
-                        {taskDetailQuery.data?.linkedTasks &&
-                          taskDetailQuery.data.linkedTasks.length > 0 && (
-                            <p className="text-xs text-text-secondary">
-                              {taskDetailQuery.data.linkedTasks.length} linked
-                              task
-                              {taskDetailQuery.data.linkedTasks.length > 1
-                                ? "s"
-                                : ""}
-                            </p>
-                          )}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* See Details link */}
-                <div className="pt-0.5">
-                  <Link
-                    to="/projects/$slug/tasks/$taskId"
-                    params={{ slug: projectSlug, taskId: task.id }}
-                    className="inline-flex items-center gap-1 text-xs font-medium text-accent hover:text-accent-text transition-colors duration-150"
-                  >
-                    See Details
-                    <ExternalLink size={12} strokeWidth={1.5} />
-                  </Link>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       )}
     </div>

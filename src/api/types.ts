@@ -79,6 +79,7 @@ export interface ProjectDetail extends Project {
 
 export interface TaskDetail extends Task {
   description?: string;
+  branch?: string | null;
   linkedTasks: LinkedTask[];
   thread: Comment[];
   group: { id: string; title: string };

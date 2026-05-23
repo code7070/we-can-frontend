@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Suspense, useState, useCallback } from "react";
+import { useSuspenseQuery, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Suspense, useState, useCallback, useEffect, useRef } from "react";
 import { Link } from "@tanstack/react-router";
 import { taskQueryOptions } from "@/api/tasks";
+import { usersQueryOptions } from "@/api/users";
 import { apiFetch } from "@/api/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useError } from "@/context/error-context";
@@ -13,6 +14,7 @@ import { MediaSelector, type InsertedMedia } from "@/components/MediaSelector";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getAvatarColor } from "@/lib/avatar-colors";
 import { cn } from "@/lib/utils";
+import type { User } from "@/api/types";
 import {
   Users,
   Calendar,
@@ -27,6 +29,8 @@ import {
   Clock,
   Pencil,
   Check,
+  Plus,
+  GitBranch,
 } from "lucide-react";
 
 export const Route = createFileRoute("/projects/$slug/tasks/$taskId")({
@@ -155,12 +159,120 @@ function SectionLabel({ icon, children, count }: { icon?: React.ReactNode; child
   );
 }
 
+// ─── Assignee Picker (inline, edit mode) ──────────────────────────────────────
+
+function AssigneePicker({
+  selectedIds,
+  allUsers,
+  onChange,
+}: {
+  selectedIds: string[];
+  allUsers: User[];
+  onChange: (ids: string[]) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  function toggle(id: string) {
+    if (selectedIds.includes(id)) {
+      onChange(selectedIds.filter((x) => x !== id));
+    } else {
+      onChange([...selectedIds, id]);
+    }
+  }
+
+  const filtered = allUsers.filter((u) =>
+    u.name.toLowerCase().includes(search.toLowerCase())
+  );
+  const selected = allUsers.filter((u) => selectedIds.includes(u.id));
+
+  return (
+    <div ref={ref} className="relative">
+      <div className="flex items-center flex-wrap gap-1.5">
+        {selected.map((u) => {
+          const initials = u.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+          return (
+            <div
+              key={u.id}
+              className="inline-flex items-center gap-1.5 pl-1 pr-2 py-0.5 rounded-full bg-[#F4F4F5] border border-transparent hover:bg-accent-subtle hover:border-[#BFDBFE] transition-colors duration-150"
+            >
+              <Avatar name={u.name} initials={initials} size={20} />
+              <span className="text-xs font-medium text-text-primary">{u.name}</span>
+              <button
+                type="button"
+                onClick={() => toggle(u.id)}
+                className="w-4 h-4 rounded-full bg-border text-text-secondary hover:bg-[#DBEAFE] flex items-center justify-center"
+              >
+                <X size={8} />
+              </button>
+            </div>
+          );
+        })}
+        <button
+          type="button"
+          onClick={() => setOpen(!open)}
+          className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium text-text-secondary hover:bg-[#F4F4F5] transition-colors duration-150"
+        >
+          <Plus size={12} />
+          Add
+        </button>
+      </div>
+
+      {open && (
+        <div className="absolute top-full left-0 mt-1 w-72 bg-surface border border-border rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.06)] z-50 overflow-hidden">
+          <div className="p-2 border-b border-[#F4F4F5]">
+            <input
+              autoFocus
+              placeholder="Search members…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full h-8 px-2.5 rounded-md border border-border text-sm text-text-primary font-sans outline-none"
+            />
+          </div>
+          <div className="max-h-60 overflow-y-auto py-1">
+            {filtered.map((u) => {
+              const initials = u.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+              const checked = selectedIds.includes(u.id);
+              return (
+                <div
+                  key={u.id}
+                  onClick={() => toggle(u.id)}
+                  className="flex items-center gap-2.5 px-3 py-2 cursor-pointer hover:bg-[#F4F4F5] transition-colors duration-150"
+                >
+                  <Avatar name={u.name} initials={initials} size={26} />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-text-primary">{u.name}</div>
+                    {u.role && <div className="text-xs text-text-disabled">{u.role}</div>}
+                  </div>
+                  {checked && <Check size={14} className="text-accent shrink-0" />}
+                </div>
+              );
+            })}
+            {filtered.length === 0 && (
+              <div className="px-4 py-3 text-sm text-text-disabled text-center">No members found.</div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Task Detail Content ──────────────────────────────────────────────────────
 
 function TaskDetailContent() {
   const { slug, taskId } = Route.useParams();
   const { data: task } = useSuspenseQuery(taskQueryOptions(taskId));
-  const { isLoggedIn, userId } = useAuth();
+  const { isLoggedIn } = useAuth();
   const { showError } = useError();
   const qc = useQueryClient();
   const [comment, setComment] = useState("");
@@ -173,15 +285,31 @@ function TaskDetailContent() {
   const [editMode, setEditMode] = useState(false);
   const [editTitle, setEditTitle] = useState(task.title);
   const [editDescription, setEditDescription] = useState(task.description ?? "");
+  const [editAssigneeIds, setEditAssigneeIds] = useState<string[]>(
+    task.assignees.map((a) => a.id)
+  );
+  const [editDueDate, setEditDueDate] = useState(task.dueDate ?? "");
+  const [editBranch, setEditBranch] = useState(task.branch ?? "");
+
+  // Fetch all users for assignee picker — only when in edit mode
+  const usersQuery = useQuery({ ...usersQueryOptions, enabled: editMode });
+  const allUsers = usersQuery.data ?? [];
 
   const updateTask = useMutation({
-    mutationFn: (body: { title?: string; description?: string }) =>
+    mutationFn: (body: {
+      title?: string;
+      description?: string;
+      assigneeIds?: string[];
+      dueDate?: string | null;
+      branch?: string | null;
+    }) =>
       apiFetch(`/tasks/${taskId}`, {
         method: "PATCH",
         body: JSON.stringify(body),
       }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["task", taskId] });
+      void qc.invalidateQueries({ queryKey: ["project"] });
       setEditMode(false);
     },
     onError: showError,
@@ -190,6 +318,9 @@ function TaskDetailContent() {
   function enterEditMode() {
     setEditTitle(task.title);
     setEditDescription(task.description ?? "");
+    setEditAssigneeIds(task.assignees.map((a) => a.id));
+    setEditDueDate(task.dueDate ?? "");
+    setEditBranch(task.branch ?? "");
     setEditMode(true);
   }
 
@@ -197,6 +328,9 @@ function TaskDetailContent() {
     setEditMode(false);
     setEditTitle(task.title);
     setEditDescription(task.description ?? "");
+    setEditAssigneeIds(task.assignees.map((a) => a.id));
+    setEditDueDate(task.dueDate ?? "");
+    setEditBranch(task.branch ?? "");
   }
 
   function saveEdit() {
@@ -205,6 +339,9 @@ function TaskDetailContent() {
     updateTask.mutate({
       title,
       description: editDescription || undefined,
+      assigneeIds: editAssigneeIds,
+      dueDate: editDueDate ? editDueDate : null,
+      branch: editBranch.trim() ? editBranch.trim() : null,
     });
   }
 
@@ -306,7 +443,7 @@ function TaskDetailContent() {
             <span>{task.project.name}</span>
           </div>
         </div>
-        {!editMode && isLoggedIn && task.createdBy?.id === userId && (
+        {!editMode && isLoggedIn && (
           <button
             onClick={enterEditMode}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium
@@ -321,7 +458,17 @@ function TaskDetailContent() {
       {/* Metadata card */}
       <div className="bg-surface border border-border rounded-xl px-5 py-1 mb-7">
         <MetaRow icon={<Users size={15} className="text-text-disabled" />} label="Assignees">
-          {task.assignees.length > 0 ? (
+          {editMode ? (
+            usersQuery.isLoading ? (
+              <span className="text-text-disabled text-sm">Loading members…</span>
+            ) : (
+              <AssigneePicker
+                selectedIds={editAssigneeIds}
+                allUsers={allUsers}
+                onChange={setEditAssigneeIds}
+              />
+            )
+          ) : task.assignees.length > 0 ? (
             <div className="flex items-center gap-2.5">
               <AssigneeAvatars assignees={task.assignees} />
               <span className="text-sm text-text-primary">
@@ -334,12 +481,59 @@ function TaskDetailContent() {
         </MetaRow>
 
         <MetaRow icon={<Calendar size={15} className="text-text-disabled" />} label="Due Date">
-          {task.dueDate ? (
+          {editMode ? (
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={editDueDate}
+                onChange={(e) => setEditDueDate(e.target.value)}
+                className={cn(
+                  "h-8 px-2.5 rounded-md bg-surface text-sm font-sans outline-none",
+                  "border border-border focus:border-accent focus:[box-shadow:0_0_0_3px_rgba(37,99,235,0.12)]",
+                  "transition-all duration-150",
+                  editDueDate ? "text-text-primary" : "text-text-disabled"
+                )}
+              />
+              {editDueDate && (
+                <button
+                  type="button"
+                  onClick={() => setEditDueDate("")}
+                  className="text-xs font-medium text-text-secondary hover:text-text-primary px-1.5 py-1 rounded hover:bg-[#F4F4F5] transition-colors duration-150"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          ) : task.dueDate ? (
             new Date(task.dueDate).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
           ) : (
             <span className="text-text-disabled">No due date</span>
           )}
         </MetaRow>
+
+        {(task.branch || editMode) && (
+          <MetaRow icon={<GitBranch size={15} className="text-text-disabled" />} label="Branch">
+            {editMode ? (
+              <input
+                type="text"
+                value={editBranch}
+                onChange={(e) => setEditBranch(e.target.value)}
+                placeholder="e.g. feat/login-flow"
+                className={cn(
+                  "w-full max-w-[320px] h-8 px-2.5 rounded-md bg-surface text-sm font-mono outline-none",
+                  "border border-border focus:border-accent focus:[box-shadow:0_0_0_3px_rgba(37,99,235,0.12)]",
+                  "transition-all duration-150 text-text-primary"
+                )}
+              />
+            ) : task.branch ? (
+              <span className="font-mono text-sm text-text-primary bg-[#F4F4F5] px-2 py-0.5 rounded">
+                {task.branch}
+              </span>
+            ) : (
+              <span className="text-text-disabled">—</span>
+            )}
+          </MetaRow>
+        )}
 
         <MetaRow icon={<FolderOpen size={15} className="text-text-disabled" />} label="Project">
           <Link
@@ -428,7 +622,7 @@ function TaskDetailContent() {
 
       {/* Edit mode actions */}
       {editMode && (
-        <div className="flex items-center justify-between pt-1 mb-7">
+        <div className="flex items-center justify-end gap-2 pt-1 mb-7">
           <button
             onClick={cancelEdit}
             className="px-4 py-2 rounded-lg text-sm font-semibold text-text-secondary

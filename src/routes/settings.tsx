@@ -1,15 +1,13 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, Link } from "@tanstack/react-router";
 import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Suspense, useState } from "react";
-import { Key, Plus, Copy, Trash2, Check, ChevronDown, Terminal } from "lucide-react";
+import { Key, Plus, Copy, Trash2, Check, BookOpen } from "lucide-react";
 import { tokensQueryOptions, createToken, revokeToken } from "@/api/tokens";
 import { useAuth } from "@/hooks/useAuth";
 import { useError } from "@/context/error-context";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { ApiToken, CreatedApiToken } from "@/api/types";
-
-const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8787/api/v1";
 
 export const Route = createFileRoute("/settings")({
   beforeLoad: () => {
@@ -134,97 +132,6 @@ function TokensSkeleton() {
   );
 }
 
-function CodeExamples({ apiBase }: { apiBase: string }) {
-  const T = "{YOUR_TOKEN}";
-  const PS = "{PROJECT_SLUG}";
-  const GI = "{GROUP_ID}";
-
-  const curl = `\
-<span class="text-text-secondary"># List all projects (public)</span>
-curl ${apiBase}/projects
-
-<span class="text-text-secondary"># List your API tokens (authenticated)</span>
-curl -H "Authorization: Bearer <span class="text-warning">${T}</span>" \\
-  ${apiBase}/api-tokens
-
-<span class="text-text-secondary"># Create a task (authenticated)</span>
-curl -X POST \\
-  -H "Authorization: Bearer <span class="text-warning">${T}</span>" \\
-  -H "Content-Type: application/json" \\
-  -d '&#123;"title":"Implement API integration","groupId":"GROUP_ID"&#125;' \\
-  ${apiBase}/projects/${PS}/groups/${GI}/tasks`;
-
-  const js = `\
-<span class="text-text-secondary">// List projects (public)</span>
-const res = await fetch("${apiBase}/projects");
-const projects = await res.json();
-
-<span class="text-text-secondary">// Fetch with Bearer token</span>
-const res = await fetch("${apiBase}/api-tokens", &#123;
-  headers: &#123;
-    "Authorization": \`Bearer <span class="text-warning">${T}</span>\`,
-  &#125;,
-&#125;);
-
-<span class="text-text-secondary">// Create a task</span>
-const res = await fetch("${apiBase}/projects/${PS}/groups/${GI}/tasks", &#123;
-  method: "POST",
-  headers: &#123;
-    "Authorization": \`Bearer <span class="text-warning">${T}</span>\`,
-    "Content-Type": "application/json",
-  &#125;,
-  body: JSON.stringify(&#123;title: "Implement API integration"&#125;),
-&#125;);`;
-
-  const py = `\
-<span class="text-text-secondary"># List projects (public)</span>
-import requests
-res = requests.get("${apiBase}/projects")
-
-<span class="text-text-secondary"># Fetch with Bearer token</span>
-headers = &#123;"Authorization": f"Bearer <span class="text-warning">${T}</span>"&#125;
-res = requests.get("${apiBase}/api-tokens", headers=headers)
-
-<span class="text-text-secondary"># Create a task</span>
-res = requests.post(
-  "${apiBase}/projects/${PS}/groups/${GI}/tasks",
-  headers=&#123;"Authorization": f"Bearer <span class="text-warning">${T}</span>"&#125;,
-  json=&#123;"title": "Implement API integration"&#125;,
-)`;
-
-  return (
-    <details className="group mb-5">
-      <summary className="flex items-center gap-1.5 text-xs font-medium text-accent cursor-pointer hover:text-accent/80 transition-colors select-none">
-        <Terminal size={14} />
-        Implementation examples
-        <ChevronDown size={14} className="transition-transform group-open:rotate-180" />
-      </summary>
-      <div className="mt-3 grid gap-3">
-        <CodeBlock label="curl" code={curl} />
-        <CodeBlock label="JavaScript &mdash; fetch" code={js} />
-        <CodeBlock label="Python &mdash; requests" code={py} />
-        <p className="text-xs text-text-secondary leading-relaxed">
-          Replace <code className="font-mono text-xs bg-hover px-1 py-0.5 rounded text-warning">YOUR_TOKEN</code> with the token value and adjust the URL/params for your endpoint.
-          All authenticated endpoints use the same <code className="font-mono text-xs bg-hover px-1 py-0.5 rounded">Authorization: Bearer &lt;token&gt;</code> pattern.
-        </p>
-      </div>
-    </details>
-  );
-}
-
-function CodeBlock({ label, code }: { label: string; code: string }) {
-  return (
-    <div className="bg-surface border border-border rounded-lg overflow-hidden">
-      <div className="flex items-center justify-between px-3 py-1.5 border-b border-border bg-hover/50">
-        <span className="text-xs font-mono text-text-secondary font-medium">{label}</span>
-      </div>
-      <pre
-        className="p-3 text-xs font-mono text-text-primary leading-relaxed overflow-x-auto"
-        dangerouslySetInnerHTML={{ __html: code }}
-      />
-    </div>
-  );
-}
 
 function SettingsPage() {
   const { token } = useAuth();
@@ -302,10 +209,18 @@ function SettingsPage() {
         </h2>
         <p className="text-sm text-text-secondary mb-3">
           Tokens allow external tools and scripts to call the WeCan API on your behalf.
-          Pass the token in the <code className="font-mono text-xs bg-hover px-1 py-0.5 rounded">Authorization</code> header.
+          Pass the token in the{" "}
+          <code className="font-mono text-xs bg-hover px-1 py-0.5 rounded">Authorization</code>{" "}
+          header.
         </p>
 
-        <CodeExamples apiBase={API_BASE} />
+        <Link
+          to="/documentation"
+          className="inline-flex items-center gap-1.5 text-xs text-accent hover:text-accent/80 transition-colors mb-5"
+        >
+          <BookOpen size={13} />
+          View API documentation &amp; examples
+        </Link>
 
         {/* New token banner */}
         {createdToken && (

@@ -1,4 +1,4 @@
-const MEDIA_URL = import.meta.env.VITE_MEDIA_WORKER_URL ?? "https://wecan-media-worker.underline.my.id";
+const MEDIA_URL = import.meta.env.VITE_MEDIA_WORKER_URL ?? "https://wecan-media.underline.my.id";
 
 export interface MediaObject {
   key: string;

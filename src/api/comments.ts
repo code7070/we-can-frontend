@@ -7,12 +7,3 @@ export function postComment(taskId: string, body: string) {
   });
 }
 
-export function uploadAttachment(taskId: string, file: File) {
-  const form = new FormData();
-  form.append("file", file);
-  return apiFetch(`/tasks/${taskId}/attachments`, {
-    method: "POST",
-    body: form,
-    headers: {},
-  });
-}

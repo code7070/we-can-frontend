@@ -180,26 +180,28 @@ function ProjectContent() {
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <Link
-            to="/projects/$slug/edit"
-            params={{ slug }}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold
-                       text-text-secondary border border-border hover:bg-[#F4F4F5] transition-colors duration-150"
-          >
-            <Settings size={15} />
-            Edit
-          </Link>
-          <Link
-            to="/projects/$slug/tasks/new"
-            params={{ slug }}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold
-                       bg-accent hover:bg-accent-text text-white transition-colors duration-150"
-          >
-            <Plus size={15} />
-            New task
-          </Link>
-        </div>
+        {isLoggedIn && (
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              to="/projects/$slug/edit"
+              params={{ slug }}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold
+                         text-text-secondary border border-border hover:bg-[#F4F4F5] transition-colors duration-150"
+            >
+              <Settings size={15} />
+              Edit
+            </Link>
+            <Link
+              to="/projects/$slug/tasks/new"
+              params={{ slug }}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold
+                         bg-accent hover:bg-accent-text text-white transition-colors duration-150"
+            >
+              <Plus size={15} />
+              New task
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Filter dropdown — visible only when logged in */}
