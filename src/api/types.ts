@@ -24,6 +24,7 @@ export interface Project {
   id: string;
   slug: string;
   name: string;
+  description?: string;
   taskCount: number;
   remainingCount: number;
 }
@@ -71,6 +72,7 @@ export interface TaskGroup {
 
 export interface ProjectDetail extends Project {
   groups: TaskGroup[];
+  description?: string;
   createdAt?: string;
   createdBy?: { name: string } | null;
   updatedAt?: string | null;
@@ -100,7 +102,6 @@ export interface CreateProjectInput {
 export interface UpdateProjectInput {
   name?: string;
   description?: string;
-  groups?: string[];
   memberIds?: string[];
 }
 

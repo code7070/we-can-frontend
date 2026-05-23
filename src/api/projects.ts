@@ -36,3 +36,20 @@ export function createGroup(projectSlug: string, title: string, sortOrder?: numb
     }
   );
 }
+
+export function renameGroup(projectSlug: string, groupId: string, title: string) {
+  return apiFetch<{ id: string; title: string; sortOrder: number }>(
+    `/projects/${projectSlug}/groups/${groupId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ title }),
+    }
+  );
+}
+
+export function deleteGroup(projectSlug: string, groupId: string) {
+  return apiFetch<{ deleted: boolean }>(
+    `/projects/${projectSlug}/groups/${groupId}`,
+    { method: "DELETE" }
+  );
+}
