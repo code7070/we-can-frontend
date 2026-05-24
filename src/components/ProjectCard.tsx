@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
+import { useCompany } from "@/context/company-context";
 import type { Project } from "@/api/types";
 
 interface Props {
@@ -35,12 +36,13 @@ function ProgressBar({ value, total }: { value: number; total: number }) {
 }
 
 export function ProjectCard({ project }: Props) {
+  const company = useCompany();
   const doneCount = project.taskCount - project.remainingCount;
 
   return (
     <Link
-      to="/projects/$slug"
-      params={{ slug: project.slug }}
+      to="/c/$companySlug/projects/$projectSlug"
+      params={{ companySlug: company.slug, projectSlug: project.slug }}
       className="group flex flex-col gap-3 p-5 rounded-xl border border-border bg-surface
                  hover:border-accent/40 hover:shadow-[0_2px_8px_rgba(37,99,235,0.08)]
                  transition-all duration-150"

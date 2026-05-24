@@ -181,6 +181,10 @@ export function RichTextEditor({
     [onChange],
   );
 
+  const handleFocusCapture = useCallback(() => {
+    onFocus?.();
+  }, [onFocus]);
+
   const handleRetry = useCallback(() => {
     setError(null);
     setEditorKey((k) => k + 1);
@@ -216,6 +220,7 @@ export function RichTextEditor({
 
       <div
         className="wecan-editor-wrapper"
+        onFocusCapture={handleFocusCapture}
         style={
           { "--editor-min-height": `${minHeight}px` } as React.CSSProperties
         }

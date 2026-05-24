@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { CornerDownRight, CornerUpRight, MessageSquareText, Clock } from "lucide-react";
 import { apiFetch } from "@/api/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useCompany } from "@/context/company-context";
 import { AssigneeAvatars } from "./AssigneeAvatars";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -47,6 +48,7 @@ function timeAgo(iso: string): string {
 export function TaskRow({ task, projectSlug }: Props) {
   const { isLoggedIn } = useAuth();
   const qc = useQueryClient();
+  const company = useCompany();
   const [isExpanded, setIsExpanded] = useState(false);
 
   const toggle = useMutation({
@@ -56,7 +58,7 @@ export function TaskRow({ task, projectSlug }: Props) {
         body: JSON.stringify({ isDone }),
       }),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["project"] });
+      void qc.invalidateQueries({ queryKey: ["companies", company.slug, "project"] });
       void qc.invalidateQueries({ queryKey: ["task", task.id] });
     },
     onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to update task"),
@@ -228,8 +230,8 @@ export function TaskRow({ task, projectSlug }: Props) {
 
               {/* Composer / open task */}
               <Link
-                to="/projects/$slug/tasks/$taskId"
-                params={{ slug: projectSlug, taskId: task.id }}
+                to="/c/$companySlug/projects/$projectSlug/tasks/$taskId"
+                params={{ companySlug: company.slug, projectSlug, taskId: task.id }}
                 className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-border bg-white hover:border-accent hover:bg-accent/5 transition-colors duration-150 group/composer"
               >
                 <span className="text-sm text-text-disabled">

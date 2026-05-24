@@ -11,14 +11,15 @@ import {
   Users,
   Check,
 } from "lucide-react";
-import { createProject } from "@/api/projects";
+import { createCompanyProject } from "@/api/projects";
+import { useCompany } from "@/context/company-context";
 import { toast } from "sonner";
 import { FormInput } from "@/components/FormInput";
 import { FormTextarea } from "@/components/FormTextarea";
 import { cn } from "@/lib/utils";
 import { getAvatarColor } from "@/lib/avatar-colors";
 
-export const Route = createFileRoute("/projects/new")({
+export const Route = createFileRoute("/c/$companySlug/projects/new")({
   component: CreateProjectPage,
 });
 
@@ -242,6 +243,7 @@ function SectionLabel({ icon, children }: { icon: React.ReactNode; children: Rea
 function CreateProjectPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const company = useCompany();
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -255,11 +257,12 @@ function CreateProjectPage() {
   const nextId = useRef(4);
 
   const mutation = useMutation({
-    mutationFn: createProject,
+    mutationFn: (input: Parameters<typeof createCompanyProject>[1]) =>
+      createCompanyProject(company.slug, input),
     onSuccess: async (project) => {
       toast.success("Project created");
-      await queryClient.invalidateQueries({ queryKey: ["projects"] });
-      void navigate({ to: "/projects/$slug", params: { slug: project.slug } });
+      await queryClient.invalidateQueries({ queryKey: ["companies", company.slug, "projects"] });
+      void navigate({ to: "/c/$companySlug/projects/$projectSlug", params: { companySlug: company.slug, projectSlug: project.slug } });
     },
     onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to create project"),
   });

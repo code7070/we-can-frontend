@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { useCompany } from "@/context/company-context";
 import type { Project } from "@/api/types";
 
 interface Props {
@@ -6,10 +7,11 @@ interface Props {
 }
 
 export function ProjectPill({ project }: Props) {
+  const company = useCompany();
   return (
     <Link
-      to="/projects/$slug"
-      params={{ slug: project.slug }}
+      to="/c/$companySlug/projects/$projectSlug"
+      params={{ companySlug: company.slug, projectSlug: project.slug }}
       className="relative group px-3 py-1.5 rounded-full border border-border bg-surface
                  text-sm font-medium text-text-primary
                  hover:bg-accent-subtle hover:border-accent

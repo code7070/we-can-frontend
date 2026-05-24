@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Search, X } from "lucide-react";
 import { searchQueryOptions } from "@/api/search";
 import { useScope, type ScopeId } from "@/hooks/useScope";
+import { useCompanyOptional } from "@/context/company-context";
 import { CommandBarResults, buildFlatItems, SCOPE_LABELS } from "./CommandBarResults";
 import { cn } from "@/lib/utils";
 
@@ -33,6 +34,7 @@ interface CommandBarProps {
 
 export function CommandBar({ className }: CommandBarProps) {
   const routeScope = useScope();
+  const company = useCompanyOptional();
 
   // User-overridable scope, resets to route default on navigation
   const [activeScope, setActiveScope] = useState<ScopeId>(routeScope.id);
@@ -70,7 +72,7 @@ export function CommandBar({ className }: CommandBarProps) {
     enabled,
   });
 
-  const items = buildFlatItems(debouncedQuery, data);
+  const items = buildFlatItems(debouncedQuery, data, company?.slug);
 
   useEffect(() => { setSelectedIndex(0); }, [items.length, debouncedQuery]);
 
@@ -112,8 +114,8 @@ export function CommandBar({ className }: CommandBarProps) {
       case "Enter": {
         e.preventDefault();
         const el = containerRef.current?.querySelector(
-          `[data-result-index="${selectedIndex}"] a`
-        ) as HTMLAnchorElement | null;
+          `[data-result-index="${selectedIndex}"] a, [data-result-index="${selectedIndex}"] button`
+        ) as HTMLElement | null;
         el?.click();
         break;
       }
@@ -136,9 +138,10 @@ export function CommandBar({ className }: CommandBarProps) {
 
   const showChip = activeScope !== "all";
   const showKbdHint = !focused && !query && !showChip;
+  const placeholder = company ? `Search ${company.name}…` : "Search…";
 
   return (
-    <div ref={containerRef} className={cn("relative isolate w-[200px]", className)}>
+    <div ref={containerRef} className={cn("relative isolate w-full", className)}>
       {/* Input row — flex container styled as the input */}
       <div
         className={cn(
@@ -176,7 +179,7 @@ export function CommandBar({ className }: CommandBarProps) {
           }}
           onBlur={() => setFocused(false)}
           onKeyDown={handleKeyDown}
-          placeholder="Search…"
+          placeholder={placeholder}
           aria-label="Search (⌘K)"
           className="flex-1 min-w-0 bg-transparent outline-none text-sm text-text-primary placeholder:text-text-disabled"
         />

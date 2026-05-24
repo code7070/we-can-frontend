@@ -11,19 +11,21 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UsersRouteImport } from './routes/users'
 import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as SearchRouteImport } from './routes/search'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DocumentationRouteImport } from './routes/documentation'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as TasksIndexRouteImport } from './routes/tasks/index'
-import { Route as ProjectsIndexRouteImport } from './routes/projects/index'
-import { Route as TasksNewRouteImport } from './routes/tasks/new'
-import { Route as ProjectsNewRouteImport } from './routes/projects/new'
-import { Route as ProjectsSlugRouteImport } from './routes/projects/$slug'
-import { Route as ProjectsSlugEditRouteImport } from './routes/projects/$slug.edit'
-import { Route as ProjectsSlugTasksNewRouteImport } from './routes/projects/$slug.tasks.new'
-import { Route as ProjectsSlugTasksTaskIdRouteImport } from './routes/projects/$slug.tasks.$taskId'
+import { Route as CompanyNewRouteImport } from './routes/company/new'
+import { Route as CCompanySlugRouteImport } from './routes/c/$companySlug'
+import { Route as CCompanySlugIndexRouteImport } from './routes/c/$companySlug/index'
+import { Route as CCompanySlugTasksIndexRouteImport } from './routes/c/$companySlug/tasks/index'
+import { Route as CCompanySlugProjectsIndexRouteImport } from './routes/c/$companySlug/projects/index'
+import { Route as CCompanySlugTasksNewRouteImport } from './routes/c/$companySlug/tasks/new'
+import { Route as CCompanySlugProjectsNewRouteImport } from './routes/c/$companySlug/projects/new'
+import { Route as CCompanySlugProjectsProjectSlugRouteImport } from './routes/c/$companySlug/projects/$projectSlug'
+import { Route as CCompanySlugProjectsProjectSlugEditRouteImport } from './routes/c/$companySlug/projects/$projectSlug.edit'
+import { Route as CCompanySlugProjectsProjectSlugTasksNewRouteImport } from './routes/c/$companySlug/projects/$projectSlug.tasks.new'
+import { Route as CCompanySlugProjectsProjectSlugTasksTaskIdRouteImport } from './routes/c/$companySlug/projects/$projectSlug.tasks.$taskId'
 
 const UsersRoute = UsersRouteImport.update({
   id: '/users',
@@ -33,11 +35,6 @@ const UsersRoute = UsersRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SearchRoute = SearchRouteImport.update({
-  id: '/search',
-  path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegisterRoute = RegisterRouteImport.update({
@@ -60,80 +57,103 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TasksIndexRoute = TasksIndexRouteImport.update({
+const CompanyNewRoute = CompanyNewRouteImport.update({
+  id: '/company/new',
+  path: '/company/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CCompanySlugRoute = CCompanySlugRouteImport.update({
+  id: '/c/$companySlug',
+  path: '/c/$companySlug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CCompanySlugIndexRoute = CCompanySlugIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CCompanySlugRoute,
+} as any)
+const CCompanySlugTasksIndexRoute = CCompanySlugTasksIndexRouteImport.update({
   id: '/tasks/',
   path: '/tasks/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => CCompanySlugRoute,
 } as any)
-const ProjectsIndexRoute = ProjectsIndexRouteImport.update({
-  id: '/projects/',
-  path: '/projects/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TasksNewRoute = TasksNewRouteImport.update({
+const CCompanySlugProjectsIndexRoute =
+  CCompanySlugProjectsIndexRouteImport.update({
+    id: '/projects/',
+    path: '/projects/',
+    getParentRoute: () => CCompanySlugRoute,
+  } as any)
+const CCompanySlugTasksNewRoute = CCompanySlugTasksNewRouteImport.update({
   id: '/tasks/new',
   path: '/tasks/new',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => CCompanySlugRoute,
 } as any)
-const ProjectsNewRoute = ProjectsNewRouteImport.update({
+const CCompanySlugProjectsNewRoute = CCompanySlugProjectsNewRouteImport.update({
   id: '/projects/new',
   path: '/projects/new',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => CCompanySlugRoute,
 } as any)
-const ProjectsSlugRoute = ProjectsSlugRouteImport.update({
-  id: '/projects/$slug',
-  path: '/projects/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProjectsSlugEditRoute = ProjectsSlugEditRouteImport.update({
-  id: '/edit',
-  path: '/edit',
-  getParentRoute: () => ProjectsSlugRoute,
-} as any)
-const ProjectsSlugTasksNewRoute = ProjectsSlugTasksNewRouteImport.update({
-  id: '/tasks/new',
-  path: '/tasks/new',
-  getParentRoute: () => ProjectsSlugRoute,
-} as any)
-const ProjectsSlugTasksTaskIdRoute = ProjectsSlugTasksTaskIdRouteImport.update({
-  id: '/tasks/$taskId',
-  path: '/tasks/$taskId',
-  getParentRoute: () => ProjectsSlugRoute,
-} as any)
+const CCompanySlugProjectsProjectSlugRoute =
+  CCompanySlugProjectsProjectSlugRouteImport.update({
+    id: '/projects/$projectSlug',
+    path: '/projects/$projectSlug',
+    getParentRoute: () => CCompanySlugRoute,
+  } as any)
+const CCompanySlugProjectsProjectSlugEditRoute =
+  CCompanySlugProjectsProjectSlugEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => CCompanySlugProjectsProjectSlugRoute,
+  } as any)
+const CCompanySlugProjectsProjectSlugTasksNewRoute =
+  CCompanySlugProjectsProjectSlugTasksNewRouteImport.update({
+    id: '/tasks/new',
+    path: '/tasks/new',
+    getParentRoute: () => CCompanySlugProjectsProjectSlugRoute,
+  } as any)
+const CCompanySlugProjectsProjectSlugTasksTaskIdRoute =
+  CCompanySlugProjectsProjectSlugTasksTaskIdRouteImport.update({
+    id: '/tasks/$taskId',
+    path: '/tasks/$taskId',
+    getParentRoute: () => CCompanySlugProjectsProjectSlugRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/documentation': typeof DocumentationRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
-  '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/users': typeof UsersRoute
-  '/projects/$slug': typeof ProjectsSlugRouteWithChildren
-  '/projects/new': typeof ProjectsNewRoute
-  '/tasks/new': typeof TasksNewRoute
-  '/projects/': typeof ProjectsIndexRoute
-  '/tasks/': typeof TasksIndexRoute
-  '/projects/$slug/edit': typeof ProjectsSlugEditRoute
-  '/projects/$slug/tasks/$taskId': typeof ProjectsSlugTasksTaskIdRoute
-  '/projects/$slug/tasks/new': typeof ProjectsSlugTasksNewRoute
+  '/c/$companySlug': typeof CCompanySlugRouteWithChildren
+  '/company/new': typeof CompanyNewRoute
+  '/c/$companySlug/': typeof CCompanySlugIndexRoute
+  '/c/$companySlug/projects/$projectSlug': typeof CCompanySlugProjectsProjectSlugRouteWithChildren
+  '/c/$companySlug/projects/new': typeof CCompanySlugProjectsNewRoute
+  '/c/$companySlug/tasks/new': typeof CCompanySlugTasksNewRoute
+  '/c/$companySlug/projects/': typeof CCompanySlugProjectsIndexRoute
+  '/c/$companySlug/tasks/': typeof CCompanySlugTasksIndexRoute
+  '/c/$companySlug/projects/$projectSlug/edit': typeof CCompanySlugProjectsProjectSlugEditRoute
+  '/c/$companySlug/projects/$projectSlug/tasks/$taskId': typeof CCompanySlugProjectsProjectSlugTasksTaskIdRoute
+  '/c/$companySlug/projects/$projectSlug/tasks/new': typeof CCompanySlugProjectsProjectSlugTasksNewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/documentation': typeof DocumentationRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
-  '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/users': typeof UsersRoute
-  '/projects/$slug': typeof ProjectsSlugRouteWithChildren
-  '/projects/new': typeof ProjectsNewRoute
-  '/tasks/new': typeof TasksNewRoute
-  '/projects': typeof ProjectsIndexRoute
-  '/tasks': typeof TasksIndexRoute
-  '/projects/$slug/edit': typeof ProjectsSlugEditRoute
-  '/projects/$slug/tasks/$taskId': typeof ProjectsSlugTasksTaskIdRoute
-  '/projects/$slug/tasks/new': typeof ProjectsSlugTasksNewRoute
+  '/company/new': typeof CompanyNewRoute
+  '/c/$companySlug': typeof CCompanySlugIndexRoute
+  '/c/$companySlug/projects/$projectSlug': typeof CCompanySlugProjectsProjectSlugRouteWithChildren
+  '/c/$companySlug/projects/new': typeof CCompanySlugProjectsNewRoute
+  '/c/$companySlug/tasks/new': typeof CCompanySlugTasksNewRoute
+  '/c/$companySlug/projects': typeof CCompanySlugProjectsIndexRoute
+  '/c/$companySlug/tasks': typeof CCompanySlugTasksIndexRoute
+  '/c/$companySlug/projects/$projectSlug/edit': typeof CCompanySlugProjectsProjectSlugEditRoute
+  '/c/$companySlug/projects/$projectSlug/tasks/$taskId': typeof CCompanySlugProjectsProjectSlugTasksTaskIdRoute
+  '/c/$companySlug/projects/$projectSlug/tasks/new': typeof CCompanySlugProjectsProjectSlugTasksNewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -141,17 +161,19 @@ export interface FileRoutesById {
   '/documentation': typeof DocumentationRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
-  '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/users': typeof UsersRoute
-  '/projects/$slug': typeof ProjectsSlugRouteWithChildren
-  '/projects/new': typeof ProjectsNewRoute
-  '/tasks/new': typeof TasksNewRoute
-  '/projects/': typeof ProjectsIndexRoute
-  '/tasks/': typeof TasksIndexRoute
-  '/projects/$slug/edit': typeof ProjectsSlugEditRoute
-  '/projects/$slug/tasks/$taskId': typeof ProjectsSlugTasksTaskIdRoute
-  '/projects/$slug/tasks/new': typeof ProjectsSlugTasksNewRoute
+  '/c/$companySlug': typeof CCompanySlugRouteWithChildren
+  '/company/new': typeof CompanyNewRoute
+  '/c/$companySlug/': typeof CCompanySlugIndexRoute
+  '/c/$companySlug/projects/$projectSlug': typeof CCompanySlugProjectsProjectSlugRouteWithChildren
+  '/c/$companySlug/projects/new': typeof CCompanySlugProjectsNewRoute
+  '/c/$companySlug/tasks/new': typeof CCompanySlugTasksNewRoute
+  '/c/$companySlug/projects/': typeof CCompanySlugProjectsIndexRoute
+  '/c/$companySlug/tasks/': typeof CCompanySlugTasksIndexRoute
+  '/c/$companySlug/projects/$projectSlug/edit': typeof CCompanySlugProjectsProjectSlugEditRoute
+  '/c/$companySlug/projects/$projectSlug/tasks/$taskId': typeof CCompanySlugProjectsProjectSlugTasksTaskIdRoute
+  '/c/$companySlug/projects/$projectSlug/tasks/new': typeof CCompanySlugProjectsProjectSlugTasksNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -160,51 +182,56 @@ export interface FileRouteTypes {
     | '/documentation'
     | '/login'
     | '/register'
-    | '/search'
     | '/settings'
     | '/users'
-    | '/projects/$slug'
-    | '/projects/new'
-    | '/tasks/new'
-    | '/projects/'
-    | '/tasks/'
-    | '/projects/$slug/edit'
-    | '/projects/$slug/tasks/$taskId'
-    | '/projects/$slug/tasks/new'
+    | '/c/$companySlug'
+    | '/company/new'
+    | '/c/$companySlug/'
+    | '/c/$companySlug/projects/$projectSlug'
+    | '/c/$companySlug/projects/new'
+    | '/c/$companySlug/tasks/new'
+    | '/c/$companySlug/projects/'
+    | '/c/$companySlug/tasks/'
+    | '/c/$companySlug/projects/$projectSlug/edit'
+    | '/c/$companySlug/projects/$projectSlug/tasks/$taskId'
+    | '/c/$companySlug/projects/$projectSlug/tasks/new'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/documentation'
     | '/login'
     | '/register'
-    | '/search'
     | '/settings'
     | '/users'
-    | '/projects/$slug'
-    | '/projects/new'
-    | '/tasks/new'
-    | '/projects'
-    | '/tasks'
-    | '/projects/$slug/edit'
-    | '/projects/$slug/tasks/$taskId'
-    | '/projects/$slug/tasks/new'
+    | '/company/new'
+    | '/c/$companySlug'
+    | '/c/$companySlug/projects/$projectSlug'
+    | '/c/$companySlug/projects/new'
+    | '/c/$companySlug/tasks/new'
+    | '/c/$companySlug/projects'
+    | '/c/$companySlug/tasks'
+    | '/c/$companySlug/projects/$projectSlug/edit'
+    | '/c/$companySlug/projects/$projectSlug/tasks/$taskId'
+    | '/c/$companySlug/projects/$projectSlug/tasks/new'
   id:
     | '__root__'
     | '/'
     | '/documentation'
     | '/login'
     | '/register'
-    | '/search'
     | '/settings'
     | '/users'
-    | '/projects/$slug'
-    | '/projects/new'
-    | '/tasks/new'
-    | '/projects/'
-    | '/tasks/'
-    | '/projects/$slug/edit'
-    | '/projects/$slug/tasks/$taskId'
-    | '/projects/$slug/tasks/new'
+    | '/c/$companySlug'
+    | '/company/new'
+    | '/c/$companySlug/'
+    | '/c/$companySlug/projects/$projectSlug'
+    | '/c/$companySlug/projects/new'
+    | '/c/$companySlug/tasks/new'
+    | '/c/$companySlug/projects/'
+    | '/c/$companySlug/tasks/'
+    | '/c/$companySlug/projects/$projectSlug/edit'
+    | '/c/$companySlug/projects/$projectSlug/tasks/$taskId'
+    | '/c/$companySlug/projects/$projectSlug/tasks/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -212,14 +239,10 @@ export interface RootRouteChildren {
   DocumentationRoute: typeof DocumentationRoute
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
-  SearchRoute: typeof SearchRoute
   SettingsRoute: typeof SettingsRoute
   UsersRoute: typeof UsersRoute
-  ProjectsSlugRoute: typeof ProjectsSlugRouteWithChildren
-  ProjectsNewRoute: typeof ProjectsNewRoute
-  TasksNewRoute: typeof TasksNewRoute
-  ProjectsIndexRoute: typeof ProjectsIndexRoute
-  TasksIndexRoute: typeof TasksIndexRoute
+  CCompanySlugRoute: typeof CCompanySlugRouteWithChildren
+  CompanyNewRoute: typeof CompanyNewRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -236,13 +259,6 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/search': {
-      id: '/search'
-      path: '/search'
-      fullPath: '/search'
-      preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/register': {
@@ -273,79 +289,128 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tasks/': {
-      id: '/tasks/'
+    '/company/new': {
+      id: '/company/new'
+      path: '/company/new'
+      fullPath: '/company/new'
+      preLoaderRoute: typeof CompanyNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/c/$companySlug': {
+      id: '/c/$companySlug'
+      path: '/c/$companySlug'
+      fullPath: '/c/$companySlug'
+      preLoaderRoute: typeof CCompanySlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/c/$companySlug/': {
+      id: '/c/$companySlug/'
+      path: '/'
+      fullPath: '/c/$companySlug/'
+      preLoaderRoute: typeof CCompanySlugIndexRouteImport
+      parentRoute: typeof CCompanySlugRoute
+    }
+    '/c/$companySlug/tasks/': {
+      id: '/c/$companySlug/tasks/'
       path: '/tasks'
-      fullPath: '/tasks/'
-      preLoaderRoute: typeof TasksIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/c/$companySlug/tasks/'
+      preLoaderRoute: typeof CCompanySlugTasksIndexRouteImport
+      parentRoute: typeof CCompanySlugRoute
     }
-    '/projects/': {
-      id: '/projects/'
+    '/c/$companySlug/projects/': {
+      id: '/c/$companySlug/projects/'
       path: '/projects'
-      fullPath: '/projects/'
-      preLoaderRoute: typeof ProjectsIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/c/$companySlug/projects/'
+      preLoaderRoute: typeof CCompanySlugProjectsIndexRouteImport
+      parentRoute: typeof CCompanySlugRoute
     }
-    '/tasks/new': {
-      id: '/tasks/new'
+    '/c/$companySlug/tasks/new': {
+      id: '/c/$companySlug/tasks/new'
       path: '/tasks/new'
-      fullPath: '/tasks/new'
-      preLoaderRoute: typeof TasksNewRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/c/$companySlug/tasks/new'
+      preLoaderRoute: typeof CCompanySlugTasksNewRouteImport
+      parentRoute: typeof CCompanySlugRoute
     }
-    '/projects/new': {
-      id: '/projects/new'
+    '/c/$companySlug/projects/new': {
+      id: '/c/$companySlug/projects/new'
       path: '/projects/new'
-      fullPath: '/projects/new'
-      preLoaderRoute: typeof ProjectsNewRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/c/$companySlug/projects/new'
+      preLoaderRoute: typeof CCompanySlugProjectsNewRouteImport
+      parentRoute: typeof CCompanySlugRoute
     }
-    '/projects/$slug': {
-      id: '/projects/$slug'
-      path: '/projects/$slug'
-      fullPath: '/projects/$slug'
-      preLoaderRoute: typeof ProjectsSlugRouteImport
-      parentRoute: typeof rootRouteImport
+    '/c/$companySlug/projects/$projectSlug': {
+      id: '/c/$companySlug/projects/$projectSlug'
+      path: '/projects/$projectSlug'
+      fullPath: '/c/$companySlug/projects/$projectSlug'
+      preLoaderRoute: typeof CCompanySlugProjectsProjectSlugRouteImport
+      parentRoute: typeof CCompanySlugRoute
     }
-    '/projects/$slug/edit': {
-      id: '/projects/$slug/edit'
+    '/c/$companySlug/projects/$projectSlug/edit': {
+      id: '/c/$companySlug/projects/$projectSlug/edit'
       path: '/edit'
-      fullPath: '/projects/$slug/edit'
-      preLoaderRoute: typeof ProjectsSlugEditRouteImport
-      parentRoute: typeof ProjectsSlugRoute
+      fullPath: '/c/$companySlug/projects/$projectSlug/edit'
+      preLoaderRoute: typeof CCompanySlugProjectsProjectSlugEditRouteImport
+      parentRoute: typeof CCompanySlugProjectsProjectSlugRoute
     }
-    '/projects/$slug/tasks/new': {
-      id: '/projects/$slug/tasks/new'
+    '/c/$companySlug/projects/$projectSlug/tasks/new': {
+      id: '/c/$companySlug/projects/$projectSlug/tasks/new'
       path: '/tasks/new'
-      fullPath: '/projects/$slug/tasks/new'
-      preLoaderRoute: typeof ProjectsSlugTasksNewRouteImport
-      parentRoute: typeof ProjectsSlugRoute
+      fullPath: '/c/$companySlug/projects/$projectSlug/tasks/new'
+      preLoaderRoute: typeof CCompanySlugProjectsProjectSlugTasksNewRouteImport
+      parentRoute: typeof CCompanySlugProjectsProjectSlugRoute
     }
-    '/projects/$slug/tasks/$taskId': {
-      id: '/projects/$slug/tasks/$taskId'
+    '/c/$companySlug/projects/$projectSlug/tasks/$taskId': {
+      id: '/c/$companySlug/projects/$projectSlug/tasks/$taskId'
       path: '/tasks/$taskId'
-      fullPath: '/projects/$slug/tasks/$taskId'
-      preLoaderRoute: typeof ProjectsSlugTasksTaskIdRouteImport
-      parentRoute: typeof ProjectsSlugRoute
+      fullPath: '/c/$companySlug/projects/$projectSlug/tasks/$taskId'
+      preLoaderRoute: typeof CCompanySlugProjectsProjectSlugTasksTaskIdRouteImport
+      parentRoute: typeof CCompanySlugProjectsProjectSlugRoute
     }
   }
 }
 
-interface ProjectsSlugRouteChildren {
-  ProjectsSlugEditRoute: typeof ProjectsSlugEditRoute
-  ProjectsSlugTasksTaskIdRoute: typeof ProjectsSlugTasksTaskIdRoute
-  ProjectsSlugTasksNewRoute: typeof ProjectsSlugTasksNewRoute
+interface CCompanySlugProjectsProjectSlugRouteChildren {
+  CCompanySlugProjectsProjectSlugEditRoute: typeof CCompanySlugProjectsProjectSlugEditRoute
+  CCompanySlugProjectsProjectSlugTasksTaskIdRoute: typeof CCompanySlugProjectsProjectSlugTasksTaskIdRoute
+  CCompanySlugProjectsProjectSlugTasksNewRoute: typeof CCompanySlugProjectsProjectSlugTasksNewRoute
 }
 
-const ProjectsSlugRouteChildren: ProjectsSlugRouteChildren = {
-  ProjectsSlugEditRoute: ProjectsSlugEditRoute,
-  ProjectsSlugTasksTaskIdRoute: ProjectsSlugTasksTaskIdRoute,
-  ProjectsSlugTasksNewRoute: ProjectsSlugTasksNewRoute,
+const CCompanySlugProjectsProjectSlugRouteChildren: CCompanySlugProjectsProjectSlugRouteChildren =
+  {
+    CCompanySlugProjectsProjectSlugEditRoute:
+      CCompanySlugProjectsProjectSlugEditRoute,
+    CCompanySlugProjectsProjectSlugTasksTaskIdRoute:
+      CCompanySlugProjectsProjectSlugTasksTaskIdRoute,
+    CCompanySlugProjectsProjectSlugTasksNewRoute:
+      CCompanySlugProjectsProjectSlugTasksNewRoute,
+  }
+
+const CCompanySlugProjectsProjectSlugRouteWithChildren =
+  CCompanySlugProjectsProjectSlugRoute._addFileChildren(
+    CCompanySlugProjectsProjectSlugRouteChildren,
+  )
+
+interface CCompanySlugRouteChildren {
+  CCompanySlugIndexRoute: typeof CCompanySlugIndexRoute
+  CCompanySlugProjectsProjectSlugRoute: typeof CCompanySlugProjectsProjectSlugRouteWithChildren
+  CCompanySlugProjectsNewRoute: typeof CCompanySlugProjectsNewRoute
+  CCompanySlugTasksNewRoute: typeof CCompanySlugTasksNewRoute
+  CCompanySlugProjectsIndexRoute: typeof CCompanySlugProjectsIndexRoute
+  CCompanySlugTasksIndexRoute: typeof CCompanySlugTasksIndexRoute
 }
 
-const ProjectsSlugRouteWithChildren = ProjectsSlugRoute._addFileChildren(
-  ProjectsSlugRouteChildren,
+const CCompanySlugRouteChildren: CCompanySlugRouteChildren = {
+  CCompanySlugIndexRoute: CCompanySlugIndexRoute,
+  CCompanySlugProjectsProjectSlugRoute:
+    CCompanySlugProjectsProjectSlugRouteWithChildren,
+  CCompanySlugProjectsNewRoute: CCompanySlugProjectsNewRoute,
+  CCompanySlugTasksNewRoute: CCompanySlugTasksNewRoute,
+  CCompanySlugProjectsIndexRoute: CCompanySlugProjectsIndexRoute,
+  CCompanySlugTasksIndexRoute: CCompanySlugTasksIndexRoute,
+}
+
+const CCompanySlugRouteWithChildren = CCompanySlugRoute._addFileChildren(
+  CCompanySlugRouteChildren,
 )
 
 const rootRouteChildren: RootRouteChildren = {
@@ -353,14 +418,10 @@ const rootRouteChildren: RootRouteChildren = {
   DocumentationRoute: DocumentationRoute,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
-  SearchRoute: SearchRoute,
   SettingsRoute: SettingsRoute,
   UsersRoute: UsersRoute,
-  ProjectsSlugRoute: ProjectsSlugRouteWithChildren,
-  ProjectsNewRoute: ProjectsNewRoute,
-  TasksNewRoute: TasksNewRoute,
-  ProjectsIndexRoute: ProjectsIndexRoute,
-  TasksIndexRoute: TasksIndexRoute,
+  CCompanySlugRoute: CCompanySlugRouteWithChildren,
+  CompanyNewRoute: CompanyNewRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

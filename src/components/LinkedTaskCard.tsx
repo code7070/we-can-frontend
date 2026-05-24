@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { CheckCircle, Circle } from "lucide-react";
+import { useCompany } from "@/context/company-context";
 import type { LinkedTask } from "@/api/types";
 
 interface Props {
@@ -18,6 +19,7 @@ function relationLabel(relation: LinkedTask["relation"]) {
 }
 
 export function LinkedTaskCard({ task }: Props) {
+  const company = useCompany();
   const label = relationLabel(task.relation);
 
   return (
@@ -28,8 +30,8 @@ export function LinkedTaskCard({ task }: Props) {
         </p>
       )}
       <Link
-        to="/projects/$slug/tasks/$taskId"
-        params={{ slug: task.project.slug, taskId: task.id }}
+        to="/c/$companySlug/projects/$projectSlug/tasks/$taskId"
+        params={{ companySlug: company.slug, projectSlug: task.project.slug, taskId: task.id }}
         className="block border-l-[3px] border-accent pl-3 py-2.5 bg-surface border border-border rounded-r-lg hover:bg-[#F4F4F5] transition-colors duration-150"
       >
         <div className="flex items-center gap-2.5">

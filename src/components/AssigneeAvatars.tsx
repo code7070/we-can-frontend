@@ -15,7 +15,7 @@ export function AssigneeAvatars({ assignees, max = 3 }: Props) {
     <div className="flex -space-x-1.5">
       {visible.map((user) => (
         <Avatar key={user.id} className="w-5 h-5 border border-surface text-[9px]">
-          <AvatarImage src={user.avatarUrl} alt={user.name} />
+          <AvatarImage src={user.avatarUrl ?? undefined} alt={user.name} />
           <AvatarFallback
             className="text-[9px] text-white"
             style={{ backgroundColor: getAvatarColor(user.name) }}

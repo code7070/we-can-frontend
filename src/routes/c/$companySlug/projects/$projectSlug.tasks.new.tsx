@@ -13,8 +13,9 @@ import {
   Check,
   ChevronDown,
 } from "lucide-react";
-import { projectQueryOptions } from "@/api/projects";
-import { createTask } from "@/api/tasks";
+import { companyProjectQueryOptions } from "@/api/projects";
+import { useCompany } from "@/context/company-context";
+import { createStandaloneTask } from "@/api/tasks";
 import { toast } from "sonner";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { FormInput } from "@/components/FormInput";
@@ -28,10 +29,10 @@ const searchSchema = z.object({
   group: z.string().optional(),
 });
 
-export const Route = createFileRoute("/projects/$slug/tasks/new")({
+export const Route = createFileRoute("/c/$companySlug/projects/$projectSlug/tasks/new")({
   validateSearch: searchSchema,
   loader: ({ context: { queryClient }, params }) =>
-    queryClient.ensureQueryData(projectQueryOptions(params.slug)),
+    queryClient.ensureQueryData(companyProjectQueryOptions(params.companySlug, params.projectSlug)),
   component: CreateTaskPage,
 });
 
@@ -190,9 +191,9 @@ function MemberPicker({ selected, onToggle }: { selected: string[]; onToggle: (i
 // ─── Group Select ─────────────────────────────────────────────────────────────
 
 interface GroupSelectProps {
-  value: string;
+  value: string | null;
   groups: TaskGroup[];
-  onChange: (groupId: string) => void;
+  onChange: (groupId: string | null) => void;
 }
 
 function GroupSelect({ value, groups, onChange }: GroupSelectProps) {
@@ -212,7 +213,10 @@ function GroupSelect({ value, groups, onChange }: GroupSelectProps) {
 
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-sm font-medium text-[#3F3F46]">Task Group</label>
+      <div className="flex items-center gap-1.5">
+        <label className="text-sm font-medium text-[#3F3F46]">Task Group</label>
+        <span className="text-xs text-text-disabled">Optional</span>
+      </div>
       <div ref={ref} className="relative">
         <div
           onClick={() => setOpen(!open)}
@@ -237,6 +241,18 @@ function GroupSelect({ value, groups, onChange }: GroupSelectProps) {
           <div className="absolute top-full left-0 right-0 mt-1 bg-surface border border-border
                           rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.06)]
                           z-50 overflow-hidden py-1">
+            <div
+              onClick={() => { onChange(null); setOpen(false); }}
+              onMouseEnter={() => setHIdx(-1)}
+              className={cn(
+                "px-3.5 py-2.5 text-sm cursor-pointer transition-colors duration-100 flex items-center justify-between",
+                !value ? "font-medium text-text-primary bg-[#F4F4F5]" : "text-text-secondary hover:bg-[#F4F4F5]"
+              )}
+            >
+              No group
+              {!value && <Check size={14} className="text-accent" />}
+            </div>
+            {groups.length > 0 && <div className="h-px bg-border mx-2 my-1" />}
             {groups.map((g, i) => (
               <div
                 key={g.id}
@@ -448,11 +464,12 @@ function LinkedTaskPicker({
 // ─── Create Task Form ─────────────────────────────────────────────────────────
 
 function CreateTaskForm() {
-  const { slug } = Route.useParams();
+  const { projectSlug } = Route.useParams();
+  const company = useCompany();
   const { group: preselectedGroupTitle } = Route.useSearch();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { data: project } = useSuspenseQuery(projectQueryOptions(slug));
+  const { data: project } = useSuspenseQuery(companyProjectQueryOptions(company.slug, projectSlug));
 
   // Pre-select group by title from search param
   const preselectedGroup = project.groups.find(
@@ -461,12 +478,11 @@ function CreateTaskForm() {
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [groupId, setGroupId] = useState(preselectedGroup?.id ?? project.groups[0]?.id ?? "");
+  const [groupId, setGroupId] = useState<string | null>(preselectedGroup?.id ?? null);
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [dueDate, setDueDate] = useState("");
   const [linkedTaskIds, setLinkedTaskIds] = useState<string[]>([]);
   const [titleError, setTitleError] = useState("");
-  const [groupError, setGroupError] = useState("");
 
   // Flatten all tasks from all groups for the linked task picker
   const allTasks: ExistingTask[] = project.groups.flatMap((g) =>
@@ -475,9 +491,10 @@ function CreateTaskForm() {
 
   const mutation = useMutation({
     mutationFn: () =>
-      createTask(slug, {
+      createStandaloneTask(company.slug, {
         title: title.trim(),
         description: description || undefined,
+        projectId: project.id,
         groupId,
         assigneeIds: selectedMembers,
         dueDate: dueDate || undefined,
@@ -485,8 +502,8 @@ function CreateTaskForm() {
       }),
     onSuccess: async () => {
       toast.success("Task created");
-      await queryClient.invalidateQueries({ queryKey: ["project", slug] });
-      void navigate({ to: "/projects/$slug", params: { slug } });
+      await queryClient.invalidateQueries({ queryKey: ["companies", company.slug, "project", projectSlug] });
+      void navigate({ to: "/c/$companySlug/projects/$projectSlug", params: { companySlug: company.slug, projectSlug } });
     },
     onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to create task"),
   });
@@ -496,12 +513,7 @@ function CreateTaskForm() {
       setTitleError("Task title is required.");
       return;
     }
-    if (!groupId) {
-      setGroupError("Please select a task group.");
-      return;
-    }
     setTitleError("");
-    setGroupError("");
     mutation.mutate();
   }
 
@@ -511,15 +523,15 @@ function CreateTaskForm() {
     );
   }
 
-  const canSubmit = title.trim().length > 0 && groupId !== "" && !mutation.isPending;
+  const canSubmit = title.trim().length > 0 && !mutation.isPending;
 
   return (
     <div className="max-w-[720px] mx-auto px-4 sm:px-8 pt-5 sm:pt-8 pb-20">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1.5 text-sm mb-7">
         <Link
-          to="/projects/$slug"
-          params={{ slug }}
+          to="/c/$companySlug/projects/$projectSlug"
+          params={{ companySlug: company.slug, projectSlug }}
           className="flex items-center gap-1 text-accent-text font-medium hover:underline"
         >
           <ArrowLeft size={14} />
@@ -532,7 +544,9 @@ function CreateTaskForm() {
       {/* Heading */}
       <div className="mb-8">
         <h1 className="text-xl font-bold text-text-primary tracking-tight">Add a new task</h1>
-        <p className="text-sm text-text-secondary mt-1">Fill in the details below. Only the title is required.</p>
+        <p className="text-sm text-text-secondary mt-1">
+          Fill in the details below. Only the title is required.
+        </p>
       </div>
 
       <div className="flex flex-col gap-7">
@@ -565,12 +579,7 @@ function CreateTaskForm() {
             <span className="text-xs text-text-disabled">Format text, add links, or insert notes.</span>
           </div>
 
-          <GroupSelect value={groupId} groups={project.groups} onChange={(v) => { setGroupId(v); if (groupError) setGroupError(""); }} />
-          {groupError && (
-            <p className="text-xs text-danger mt-1">
-              {groupError}
-            </p>
-          )}
+          <GroupSelect value={groupId} groups={project.groups} onChange={setGroupId} />
         </div>
 
         {/* Card: People & Dates */}
@@ -603,8 +612,8 @@ function CreateTaskForm() {
         {/* Actions */}
         <div className="flex items-center justify-between pt-1">
           <Link
-            to="/projects/$slug"
-            params={{ slug }}
+            to="/c/$companySlug/projects/$projectSlug"
+            params={{ companySlug: company.slug, projectSlug }}
             className="px-4 py-2 rounded-lg text-sm font-semibold text-text-secondary
                        hover:bg-[#F4F4F5] transition-colors duration-150"
           >

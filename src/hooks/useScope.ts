@@ -16,18 +16,18 @@ export interface Scope {
 /**
  * Derives the current search scope from the active route.
  *
- * Scope rules (from ui-architecture.md):
- *   /                               → all        (available: all)
- *   /tasks                          → tasks       (available: tasks, all)
- *   /projects                       → projects    (available: projects, all)
- *   /projects/:slug                 → in_project  (available: in_project, all)
- *   /projects/:slug/tasks/:taskId   → in_task     (available: in_task, in_project, all)
+ * Scope rules (company-scoped routes under /c/{companySlug}/...):
+ *   /c/{slug}/projects/{projectSlug}/tasks/{taskId} → in_task
+ *   /c/{slug}/projects/{projectSlug}                → in_project
+ *   /c/{slug}/projects                              → projects
+ *   /c/{slug}/tasks                                 → tasks
+ *   /c/{slug}/  and everything else                 → all
  */
 export function useScope(): Scope {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-  // /projects/:slug/tasks/:taskId
-  const taskMatch = pathname.match(/^\/projects\/([^/]+)\/tasks\/([^/]+)/);
+  // /c/{companySlug}/projects/{projectSlug}/tasks/{taskId}
+  const taskMatch = pathname.match(/^\/c\/[^/]+\/projects\/([^/]+)\/tasks\/([^/]+)/);
   if (taskMatch) {
     return {
       id: "in_task",
@@ -37,8 +37,8 @@ export function useScope(): Scope {
     };
   }
 
-  // /projects/:slug  (but not /projects/new or /projects/index)
-  const projectMatch = pathname.match(/^\/projects\/([^/]+)(?:\/|$)/);
+  // /c/{companySlug}/projects/{projectSlug} (but not /new)
+  const projectMatch = pathname.match(/^\/c\/[^/]+\/projects\/([^/]+)(?:\/|$)/);
   if (projectMatch && projectMatch[1] !== "new") {
     return {
       id: "in_project",
@@ -48,16 +48,16 @@ export function useScope(): Scope {
     };
   }
 
-  // /projects (index)
-  if (pathname === "/projects") {
+  // /c/{companySlug}/projects (index)
+  if (pathname.match(/^\/c\/[^/]+\/projects\/?$/)) {
     return { id: "projects", contextId: null, slug: null, available: ["projects", "all"] };
   }
 
-  // /tasks (index or /tasks/new — new is a form, keep tasks scope)
-  if (pathname.startsWith("/tasks")) {
+  // /c/{companySlug}/tasks
+  if (pathname.match(/^\/c\/[^/]+\/tasks/)) {
     return { id: "tasks", contextId: null, slug: null, available: ["tasks", "all"] };
   }
 
-  // / (home) and everything else
+  // / and everything else
   return { id: "all", contextId: null, slug: null, available: ["all"] };
 }

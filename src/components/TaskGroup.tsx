@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { TaskRow } from "./TaskRow";
 import { renameGroup, deleteGroup } from "@/api/projects";
 import { useAuth } from "@/hooks/useAuth";
+import { useCompany } from "@/context/company-context";
 import type { TaskGroup as TaskGroupType } from "@/api/types";
 
 interface Props {
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export function TaskGroup({ group, projectSlug }: Props) {
+  const company = useCompany();
   const [isOpen, setIsOpen] = useState(true);
   const [addHovered, setAddHovered] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -31,7 +33,7 @@ export function TaskGroup({ group, projectSlug }: Props) {
     onSuccess: () => {
       setEditing(false);
       toast.success("Group renamed");
-      void qc.invalidateQueries({ queryKey: ["project", projectSlug] });
+      void qc.invalidateQueries({ queryKey: ["companies", company.slug, "project", projectSlug] });
     },
     onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to rename group"),
   });
@@ -41,7 +43,7 @@ export function TaskGroup({ group, projectSlug }: Props) {
     onSuccess: () => {
       setDeleting(false);
       toast.success("Group deleted");
-      void qc.invalidateQueries({ queryKey: ["project", projectSlug] });
+      void qc.invalidateQueries({ queryKey: ["companies", company.slug, "project", projectSlug] });
     },
     onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to delete group"),
   });
@@ -170,8 +172,8 @@ export function TaskGroup({ group, projectSlug }: Props) {
 
           {/* Inline add task CTA */}
           <Link
-            to="/projects/$slug/tasks/new"
-            params={{ slug: projectSlug }}
+            to="/c/$companySlug/projects/$projectSlug/tasks/new"
+            params={{ companySlug: company.slug, projectSlug }}
             search={{ group: group.title }}
             onMouseEnter={() => setAddHovered(true)}
             onMouseLeave={() => setAddHovered(false)}

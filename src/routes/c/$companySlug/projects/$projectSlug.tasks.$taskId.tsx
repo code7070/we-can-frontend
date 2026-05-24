@@ -1,8 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useSuspenseQuery, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Suspense, useState, useCallback, useEffect, useRef } from "react";
-import { Link } from "@tanstack/react-router";
 import { taskQueryOptions } from "@/api/tasks";
+import { useCompany } from "@/context/company-context";
 import { usersQueryOptions } from "@/api/users";
 import { apiFetch } from "@/api/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -13,6 +13,7 @@ import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import { MediaSelector, type InsertedMedia } from "@/components/MediaSelector";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getAvatarColor } from "@/lib/avatar-colors";
+import { ApiError } from "@/lib/api-error";
 import { cn } from "@/lib/utils";
 import type { User } from "@/api/types";
 import {
@@ -33,10 +34,23 @@ import {
   GitBranch,
 } from "lucide-react";
 
-export const Route = createFileRoute("/projects/$slug/tasks/$taskId")({
-  loader: ({ context: { queryClient }, params }) =>
-    queryClient.ensureQueryData(taskQueryOptions(params.taskId)),
+export const Route = createFileRoute("/c/$companySlug/projects/$projectSlug/tasks/$taskId")({
+  loader: async ({ context: { queryClient }, params }) => {
+    try {
+      const task = await queryClient.ensureQueryData(taskQueryOptions(params.taskId));
+      if (!task) {
+        throw notFound();
+      }
+      return task;
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 404) {
+        throw notFound();
+      }
+      throw error;
+    }
+  },
   component: TaskDetailPage,
+  notFoundComponent: TaskDetailNotFound,
 });
 
 // ─── Checkbox ────────────────────────────────────────────────────────────────
@@ -270,10 +284,12 @@ function AssigneePicker({
 // ─── Task Detail Content ──────────────────────────────────────────────────────
 
 function TaskDetailContent() {
-  const { slug, taskId } = Route.useParams();
-  const { data: task } = useSuspenseQuery(taskQueryOptions(taskId));
+  const { taskId } = Route.useParams();
+  const company = useCompany();
+  const { data: taskData } = useSuspenseQuery(taskQueryOptions(taskId));
   const { isLoggedIn } = useAuth();
   const qc = useQueryClient();
+  const task = taskData ?? null;
   const [comment, setComment] = useState("");
   const [commentKey, setCommentKey] = useState(0);
   const [commentEmpty, setCommentEmpty] = useState(true);
@@ -282,17 +298,33 @@ function TaskDetailContent() {
 
   // ─── Edit mode ──────────────────────────────────────────────────────────
   const [editMode, setEditMode] = useState(false);
-  const [editTitle, setEditTitle] = useState(task.title);
-  const [editDescription, setEditDescription] = useState(task.description ?? "");
-  const [editAssigneeIds, setEditAssigneeIds] = useState<string[]>(
-    task.assignees.map((a) => a.id)
-  );
-  const [editDueDate, setEditDueDate] = useState(task.dueDate ?? "");
-  const [editBranch, setEditBranch] = useState(task.branch ?? "");
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editAssigneeIds, setEditAssigneeIds] = useState<string[]>([]);
+  const [editDueDate, setEditDueDate] = useState("");
+  const [editBranch, setEditBranch] = useState("");
 
   // Fetch all users for assignee picker — only when in edit mode
   const usersQuery = useQuery({ ...usersQueryOptions, enabled: editMode });
   const allUsers = usersQuery.data ?? [];
+
+  useEffect(() => {
+    if (!task || editMode) return;
+    setEditTitle(task.title);
+    setEditDescription(task.description ?? "");
+    setEditAssigneeIds(task.assignees.map((a) => a.id));
+    setEditDueDate(task.dueDate ?? "");
+    setEditBranch(task.branch ?? "");
+  }, [editMode, task]);
+
+  if (!task) {
+    return <TaskDetailNotFound />;
+  }
+
+  const taskProject = task.project;
+  const taskGroup = task.group;
+  const taskProjectName = taskProject?.name ?? "No project";
+  const taskGroupTitle = taskGroup?.title ?? "Ungrouped";
 
   const updateTask = useMutation({
     mutationFn: (body: {
@@ -309,7 +341,7 @@ function TaskDetailContent() {
     onSuccess: () => {
       toast.success("Task updated");
       void qc.invalidateQueries({ queryKey: ["task", taskId] });
-      void qc.invalidateQueries({ queryKey: ["project"] });
+      void qc.invalidateQueries({ queryKey: ["companies", company.slug, "project"] });
       setEditMode(false);
     },
     onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to update task"),
@@ -352,7 +384,7 @@ function TaskDetailContent() {
         body: JSON.stringify({ isDone }),
       }),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["project"] });
+      void qc.invalidateQueries({ queryKey: ["companies", company.slug, "project"] });
       void qc.invalidateQueries({ queryKey: ["task", taskId] });
     },
     onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to update task"),
@@ -393,13 +425,17 @@ function TaskDetailContent() {
       <nav className="flex items-center gap-1.5 text-sm mb-7">
         <Link to="/" className="text-accent-text font-medium hover:underline">Home</Link>
         <span className="text-border">/</span>
-        <Link
-          to="/projects/$slug"
-          params={{ slug }}
-          className="text-accent-text font-medium hover:underline"
-        >
-          {task.project.name}
-        </Link>
+        {taskProject ? (
+          <Link
+            to="/c/$companySlug/projects/$projectSlug"
+            params={{ companySlug: company.slug, projectSlug: taskProject.slug }}
+            className="text-accent-text font-medium hover:underline"
+          >
+            {taskProjectName}
+          </Link>
+        ) : (
+          <span className="text-text-secondary font-medium">{taskProjectName}</span>
+        )}
         <span className="text-border">/</span>
         <span className="text-text-secondary font-medium truncate max-w-[200px]">{task.title}</span>
       </nav>
@@ -438,10 +474,10 @@ function TaskDetailContent() {
           )}
           <div className="flex items-center gap-1.5 mt-1.5 text-sm text-text-secondary">
             <span className="bg-[#F4F4F5] px-2 py-0.5 rounded text-xs font-medium text-text-secondary">
-              {task.group.title}
+              {taskGroupTitle}
             </span>
             <span>·</span>
-            <span>{task.project.name}</span>
+            <span>{taskProjectName}</span>
           </div>
         </div>
         {!editMode && isLoggedIn && (
@@ -537,17 +573,21 @@ function TaskDetailContent() {
         )}
 
         <MetaRow icon={<FolderOpen size={15} className="text-text-disabled" />} label="Project">
-          <Link
-            to="/projects/$slug"
-            params={{ slug }}
-            className="text-accent-text font-medium hover:underline"
-          >
-            {task.project.name}
-          </Link>
+          {taskProject ? (
+            <Link
+              to="/c/$companySlug/projects/$projectSlug"
+              params={{ companySlug: company.slug, projectSlug: taskProject.slug }}
+              className="text-accent-text font-medium hover:underline"
+            >
+              {taskProjectName}
+            </Link>
+          ) : (
+            <span className="text-text-disabled">No project</span>
+          )}
         </MetaRow>
 
         <MetaRow icon={<Layers size={15} className="text-text-disabled" />} label="Task Group">
-          {task.group.title}
+          {taskGroup ? taskGroupTitle : <span className="text-text-disabled">Ungrouped</span>}
         </MetaRow>
 
         {task.linkedTasks.length > 0 && (
@@ -660,8 +700,8 @@ function TaskDetailContent() {
                 <div key={lt.id}>
                   <div className="text-xs text-text-disabled font-medium mb-1.5">{relationLabel}</div>
                   <Link
-                    to="/projects/$slug/tasks/$taskId"
-                    params={{ slug: lt.project.slug, taskId: lt.id }}
+                    to="/c/$companySlug/projects/$projectSlug/tasks/$taskId"
+                    params={{ companySlug: company.slug, projectSlug: lt.project.slug, taskId: lt.id }}
                     className="flex items-center gap-3 px-4 py-3.5 bg-surface border border-border rounded-lg hover:bg-[#FAFAFA] transition-colors duration-150"
                     style={{ borderLeft: "3px solid #2563EB" }}
                   >
@@ -863,6 +903,28 @@ function TaskDetailSkeleton() {
             </div>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function TaskDetailNotFound() {
+  const { companySlug, projectSlug } = Route.useParams();
+
+  return (
+    <div className="max-w-[720px] mx-auto px-4 sm:px-8 pt-8 pb-20">
+      <div className="bg-surface border border-border rounded-xl px-6 py-8 text-center">
+        <h1 className="text-xl font-semibold text-text-primary">Task not found</h1>
+        <p className="mt-2 text-text-secondary">
+          This task does not exist anymore or the URL is invalid.
+        </p>
+        <Link
+          to="/c/$companySlug/projects/$projectSlug"
+          params={{ companySlug, projectSlug }}
+          className="mt-4 inline-flex text-accent-text font-medium hover:underline"
+        >
+          Back to project
+        </Link>
       </div>
     </div>
   );

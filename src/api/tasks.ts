@@ -1,5 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
-import { apiFetch } from "./client";
+import { apiFetch, companyApiUrl } from "./client";
+import { ApiError } from "@/lib/api-error";
 import type { Task, TaskDetail, TaskListResponse, CreateTaskInput } from "./types";
 
 export const taskQueryOptions = (taskId: string) =>
@@ -42,14 +43,38 @@ export interface CreateStandaloneTaskInput {
   projectId?: string | null;
   groupId?: string | null;
   assigneeIds?: string[];
+  linkedTaskIds?: string[];
   dueDate?: string;
 }
 
-export function createStandaloneTask(input: CreateStandaloneTaskInput): Promise<Task> {
-  return apiFetch<Task>("/tasks", {
+export async function createStandaloneTask(
+  companySlug: string,
+  input: CreateStandaloneTaskInput
+): Promise<Task> {
+  const token = localStorage.getItem("taskflow_token");
+  const res = await fetch(companyApiUrl(companySlug, "/tasks"), {
     method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     body: JSON.stringify(input),
   });
+
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as {
+      error?: { code?: string; message?: string; fields?: Record<string, string[]> };
+    };
+    throw new ApiError({
+      code: body.error?.code ?? "UNKNOWN_ERROR",
+      message: body.error?.message ?? "Request failed",
+      status: res.status,
+      fields: body.error?.fields,
+    });
+  }
+
+  const body = await res.json();
+  return (body.data ?? body) as Task;
 }
 
 export function createTask(projectSlug: string, input: CreateTaskInput): Promise<Task> {
@@ -59,3 +84,22 @@ export function createTask(projectSlug: string, input: CreateTaskInput): Promise
     body: JSON.stringify({ ...body, linkedTaskIds }),
   });
 }
+
+export const companyTasksListQueryOptions = (
+  companySlug: string,
+  filters: TasksFilter = {}
+) =>
+  queryOptions({
+    queryKey: ["companies", companySlug, "tasks", filters],
+    queryFn: () => {
+      const params = new URLSearchParams();
+      if (filters.assignee_id) params.set("assignee_id", filters.assignee_id);
+      if (filters.project_id) params.set("project_id", filters.project_id);
+      if (filters.is_done) params.set("is_done", filters.is_done);
+      params.set("limit", "100");
+      const qs = params.toString();
+      return apiFetch<TaskListResponse>(
+        `/c/${companySlug}/tasks${qs ? `?${qs}` : ""}`
+      );
+    },
+  });

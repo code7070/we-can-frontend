@@ -12,7 +12,8 @@ import {
   ChevronDown,
   Folder,
 } from "lucide-react";
-import { projectsQueryOptions, projectQueryOptions } from "@/api/projects";
+import { companyProjectsQueryOptions, companyProjectQueryOptions } from "@/api/projects";
+import { useCompany } from "@/context/company-context";
 import { usersQueryOptions } from "@/api/users";
 import { createStandaloneTask } from "@/api/tasks";
 import { useAuth } from "@/hooks/useAuth";
@@ -23,7 +24,7 @@ import { getAvatarColor } from "@/lib/avatar-colors";
 import { cn } from "@/lib/utils";
 import type { User } from "@/api/types";
 
-export const Route = createFileRoute("/tasks/new")({
+export const Route = createFileRoute("/c/$companySlug/tasks/new")({
   component: CreateStandaloneTaskPage,
 });
 
@@ -72,13 +73,15 @@ function SectionLabel({ icon, children }: { icon: React.ReactNode; children: Rea
 function ProjectSelect({
   value,
   onChange,
+  companySlug,
 }: {
   value: string | null;
   onChange: (slug: string | null) => void;
+  companySlug: string;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const { data: projects = [] } = useQuery(projectsQueryOptions);
+  const { data: projects = [] } = useQuery(companyProjectsQueryOptions(companySlug));
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -437,8 +440,9 @@ function DateInput({ value, onChange }: { value: string; onChange: (v: string) =
 function CreateStandaloneTaskForm() {
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const company = useCompany();
 
-  const { data: projects = [] } = useQuery(projectsQueryOptions);
+  const { data: projects = [] } = useQuery(companyProjectsQueryOptions(company.slug));
   const { data: users = [] } = useQuery(usersQueryOptions);
 
   const [title, setTitle] = useState("");
@@ -451,7 +455,7 @@ function CreateStandaloneTaskForm() {
 
   // Fetch selected project's groups (only when a project is chosen)
   const { data: projectDetail, isLoading: groupsLoading } = useQuery({
-    ...projectQueryOptions(projectSlug!),
+    ...companyProjectQueryOptions(company.slug, projectSlug!),
     enabled: !!projectSlug,
   });
   const groups = projectDetail?.groups ?? [];
@@ -465,7 +469,7 @@ function CreateStandaloneTaskForm() {
 
   const mutation = useMutation({
     mutationFn: () =>
-      createStandaloneTask({
+      createStandaloneTask(company.slug, {
         title: title.trim(),
         description: description || undefined,
         projectId: selectedProject?.id ?? null,
@@ -475,13 +479,13 @@ function CreateStandaloneTaskForm() {
       }),
     onSuccess: async () => {
       toast.success("Task created");
-      await qc.invalidateQueries({ queryKey: ["tasks"] });
-      await qc.invalidateQueries({ queryKey: ["projects"] });
+      await qc.invalidateQueries({ queryKey: ["companies", company.slug, "tasks"] });
+      await qc.invalidateQueries({ queryKey: ["companies", company.slug, "projects"] });
       if (projectSlug) {
-        await qc.invalidateQueries({ queryKey: ["project", projectSlug] });
-        void navigate({ to: "/projects/$slug", params: { slug: projectSlug } });
+        await qc.invalidateQueries({ queryKey: ["companies", company.slug, "project", projectSlug] });
+        void navigate({ to: "/c/$companySlug/projects/$projectSlug", params: { companySlug: company.slug, projectSlug } });
       } else {
-        void navigate({ to: "/tasks" });
+        void navigate({ to: "/c/$companySlug/tasks", params: { companySlug: company.slug } });
       }
     },
     onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to create task"),
@@ -503,7 +507,8 @@ function CreateStandaloneTaskForm() {
       {/* Back nav */}
       <nav className="flex items-center gap-1.5 text-sm mb-7">
         <Link
-          to="/tasks"
+          to="/c/$companySlug/tasks"
+          params={{ companySlug: company.slug }}
           className="flex items-center gap-1 text-accent-text font-medium hover:underline"
         >
           <ArrowLeft size={14} />
@@ -556,7 +561,7 @@ function CreateStandaloneTaskForm() {
             Project &amp; Group
           </SectionLabel>
 
-          <ProjectSelect value={projectSlug} onChange={setProjectSlug} />
+          <ProjectSelect value={projectSlug} onChange={setProjectSlug} companySlug={company.slug} />
 
           {projectSlug && (
             <GroupSelect
@@ -588,7 +593,8 @@ function CreateStandaloneTaskForm() {
         {/* Actions */}
         <div className="flex items-center justify-between pt-1">
           <Link
-            to="/tasks"
+            to="/c/$companySlug/tasks"
+            params={{ companySlug: company.slug }}
             className="px-4 py-2 rounded-lg text-sm font-semibold text-text-secondary
                        hover:bg-[#F4F4F5] transition-colors duration-150"
           >

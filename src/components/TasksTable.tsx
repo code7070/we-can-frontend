@@ -6,11 +6,12 @@ import {
 } from "@tanstack/react-table";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { Clock, CornerUpRight, MessageSquareText } from "lucide-react";
+import { Clock, MessageSquareText } from "lucide-react";
 import { toast } from "sonner";
 import { patchTask } from "@/api/tasks";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AssigneeAvatars } from "@/components/AssigneeAvatars";
+import { useCompany } from "@/context/company-context";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import type { TaskListItem, TaskListResponse } from "@/api/types";
@@ -20,13 +21,14 @@ import type { TaskListItem, TaskListResponse } from "@/api/types";
 function StatusCell({ task }: { task: TaskListItem }) {
   const { isLoggedIn } = useAuth();
   const qc = useQueryClient();
+  const company = useCompany();
 
   const toggle = useMutation({
     mutationFn: (isDone: boolean) => patchTask(task.id, { isDone }),
     onMutate: async (isDone) => {
-      await qc.cancelQueries({ queryKey: ["tasks"] });
-      const prev = qc.getQueriesData<TaskListResponse>({ queryKey: ["tasks"] });
-      qc.setQueriesData<TaskListResponse>({ queryKey: ["tasks"] }, (old) => {
+      await qc.cancelQueries({ queryKey: ["companies", company.slug, "tasks"] });
+      const prev = qc.getQueriesData<TaskListResponse>({ queryKey: ["companies", company.slug, "tasks"] });
+      qc.setQueriesData<TaskListResponse>({ queryKey: ["companies", company.slug, "tasks"] }, (old) => {
         if (!old) return old;
         return {
           ...old,
@@ -40,8 +42,8 @@ function StatusCell({ task }: { task: TaskListItem }) {
       toast.error(err instanceof Error ? err.message : "Failed to update task");
     },
     onSettled: () => {
-      void qc.invalidateQueries({ queryKey: ["tasks"] });
-      void qc.invalidateQueries({ queryKey: ["project"] });
+      void qc.invalidateQueries({ queryKey: ["companies", company.slug, "tasks"] });
+      void qc.invalidateQueries({ queryKey: ["companies", company.slug, "project"] });
     },
   });
 
@@ -56,6 +58,7 @@ function StatusCell({ task }: { task: TaskListItem }) {
 }
 
 function TitleCell({ task }: { task: TaskListItem }) {
+  const company = useCompany();
   const text = (
     <span
       className={cn(
@@ -72,8 +75,8 @@ function TitleCell({ task }: { task: TaskListItem }) {
   if (task.project) {
     return (
       <Link
-        to="/projects/$slug/tasks/$taskId"
-        params={{ slug: task.project.slug, taskId: task.id }}
+        to="/c/$companySlug/projects/$projectSlug/tasks/$taskId"
+        params={{ companySlug: company.slug, projectSlug: task.project.slug, taskId: task.id }}
         className="flex-1 min-w-0 truncate"
       >
         {text}
@@ -85,13 +88,14 @@ function TitleCell({ task }: { task: TaskListItem }) {
 }
 
 function ProjectCell({ task }: { task: TaskListItem }) {
+  const company = useCompany();
   if (!task.project) {
     return <span className="text-xs text-text-disabled">No project</span>;
   }
   return (
     <Link
-      to="/projects/$slug"
-      params={{ slug: task.project.slug }}
+      to="/c/$companySlug/projects/$projectSlug"
+      params={{ companySlug: company.slug, projectSlug: task.project.slug }}
       className="inline-flex items-center px-2 py-0.5 rounded-md bg-[#EFF6FF] text-xs font-medium text-accent hover:bg-accent/20 transition-colors duration-150 max-w-[160px] truncate"
     >
       {task.project.name}

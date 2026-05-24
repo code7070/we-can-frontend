@@ -2,15 +2,16 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense, useState } from "react";
 import { ArrowLeft, FolderOpen } from "lucide-react";
-import { projectQueryOptions, updateProject } from "@/api/projects";
+import { companyProjectQueryOptions, updateCompanyProject } from "@/api/projects";
+import { useCompany } from "@/context/company-context";
 import { toast } from "sonner";
 import { FormInput } from "@/components/FormInput";
 import { FormTextarea } from "@/components/FormTextarea";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/projects/$slug/edit")({
+export const Route = createFileRoute("/c/$companySlug/projects/$projectSlug/edit")({
   loader: ({ context: { queryClient }, params }) =>
-    queryClient.ensureQueryData(projectQueryOptions(params.slug)),
+    queryClient.ensureQueryData(companyProjectQueryOptions(params.companySlug, params.projectSlug)),
   component: EditProjectPage,
 });
 
@@ -28,21 +29,22 @@ function SectionLabel({ icon, children }: { icon: React.ReactNode; children: Rea
 
 // ─── Edit Form (needs project data) ───────────────────────────────────────
 function EditProjectForm() {
-  const { slug } = Route.useParams();
+  const { projectSlug } = Route.useParams();
+  const company = useCompany();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { data: project } = useSuspenseQuery(projectQueryOptions(slug));
+  const { data: project } = useSuspenseQuery(companyProjectQueryOptions(company.slug, projectSlug));
 
   const [name, setName] = useState(project.name);
   const [description, setDescription] = useState(project.description ?? "");
   const [nameError, setNameError] = useState("");
 
   const mutation = useMutation({
-    mutationFn: (input: Parameters<typeof updateProject>[1]) => updateProject(slug, input),
+    mutationFn: (input: Parameters<typeof updateCompanyProject>[2]) => updateCompanyProject(company.slug, projectSlug, input),
     onSuccess: async () => {
       toast.success("Project updated");
-      await queryClient.invalidateQueries({ queryKey: ["project", slug] });
-      void navigate({ to: "/projects/$slug", params: { slug } });
+      await queryClient.invalidateQueries({ queryKey: ["companies", company.slug, "project", projectSlug] });
+      void navigate({ to: "/c/$companySlug/projects/$projectSlug", params: { companySlug: company.slug, projectSlug } });
     },
     onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to update project"),
   });
@@ -66,8 +68,8 @@ function EditProjectForm() {
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1.5 text-sm mb-7">
         <Link
-          to="/projects/$slug"
-          params={{ slug }}
+          to="/c/$companySlug/projects/$projectSlug"
+          params={{ companySlug: company.slug, projectSlug }}
           className="flex items-center gap-1 text-accent-text font-medium hover:underline"
         >
           <ArrowLeft size={14} />
@@ -111,8 +113,8 @@ function EditProjectForm() {
         {/* Footer actions */}
         <div className="flex items-center justify-between pt-1">
           <Link
-            to="/projects/$slug"
-            params={{ slug }}
+            to="/c/$companySlug/projects/$projectSlug"
+            params={{ companySlug: company.slug, projectSlug }}
             className="px-4 py-2 rounded-lg text-sm font-semibold text-text-secondary
                        hover:bg-[#F4F4F5] transition-colors duration-150"
           >

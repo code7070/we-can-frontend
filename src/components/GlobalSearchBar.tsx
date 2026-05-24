@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, Link } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Search, ArrowRight, X, Folder, CheckSquare, MessageCircle } from "lucide-react";
+import { Search, X, Folder, CheckSquare, MessageCircle } from "lucide-react";
 import { searchQueryOptions } from "@/api/search";
+import { useCompanyOptional } from "@/context/company-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +22,7 @@ export function GlobalSearchBar({
   autoFocus = false,
   placeholder,
 }: Props) {
-  const navigate = useNavigate();
+  const company = useCompanyOptional();
   const [value, setValue] = useState(defaultValue);
   const [debouncedValue, setDebouncedValue] = useState(defaultValue);
   const [open, setOpen] = useState(false);
@@ -65,7 +66,6 @@ export function GlobalSearchBar({
       if (value.trim()) {
         setOpen(false);
         inputRef.current?.blur();
-        void navigate({ to: "/search", search: { q: value.trim() } });
       }
     } else if (e.key === "Escape") {
       setOpen(false);
@@ -189,11 +189,11 @@ export function GlobalSearchBar({
                     icon={<Folder size={12} className="text-text-disabled" />}
                     title="Projects"
                   >
-                    {data.projects.map((p) => (
+                    {data.projects.map((p) => company ? (
                       <Link
                         key={p.id}
-                        to="/projects/$slug"
-                        params={{ slug: p.slug }}
+                        to="/c/$companySlug/projects/$projectSlug"
+                        params={{ companySlug: company.slug, projectSlug: p.slug }}
                         onClick={handleResultClick}
                         className="block px-4 py-2 hover:bg-[#F4F4F5] transition-colors"
                       >
@@ -204,7 +204,7 @@ export function GlobalSearchBar({
                           {p.remainingCount} of {p.taskCount} remaining
                         </p>
                       </Link>
-                    ))}
+                    ) : null)}
                   </ResultSection>
                 )}
 
@@ -213,11 +213,11 @@ export function GlobalSearchBar({
                     icon={<CheckSquare size={12} className="text-text-disabled" />}
                     title="Tasks"
                   >
-                    {data.tasks.map((t) => (
+                    {data.tasks.map((t) => company && t.project ? (
                       <Link
                         key={t.id}
-                        to="/projects/$slug/tasks/$taskId"
-                        params={{ slug: t.project.slug, taskId: t.id }}
+                        to="/c/$companySlug/projects/$projectSlug/tasks/$taskId"
+                        params={{ companySlug: company.slug, projectSlug: t.project.slug, taskId: t.id }}
                         onClick={handleResultClick}
                         className="block px-4 py-2 hover:bg-[#F4F4F5] transition-colors"
                       >
@@ -228,7 +228,7 @@ export function GlobalSearchBar({
                           {t.project.name}
                         </p>
                       </Link>
-                    ))}
+                    ) : null)}
                   </ResultSection>
                 )}
 
@@ -237,12 +237,13 @@ export function GlobalSearchBar({
                     icon={<MessageCircle size={12} className="text-text-disabled" />}
                     title="Comments"
                   >
-                    {data.comments.map((c) => (
+                    {data.comments.map((c) => company && c.task && c.task.project ? (
                       <Link
                         key={c.id}
-                        to="/projects/$slug/tasks/$taskId"
+                        to="/c/$companySlug/projects/$projectSlug/tasks/$taskId"
                         params={{
-                          slug: c.task.project.slug,
+                          companySlug: company.slug,
+                          projectSlug: c.task.project.slug,
                           taskId: c.task.id,
                         }}
                         onClick={handleResultClick}
@@ -255,24 +256,13 @@ export function GlobalSearchBar({
                           {c.task.project.name} · {c.task.title}
                         </p>
                       </Link>
-                    ))}
+                    ) : null)}
                   </ResultSection>
                 )}
               </div>
             )}
           </div>
 
-          {hasQuery && (
-            <Link
-              to="/search"
-              search={{ q: value.trim() }}
-              onClick={handleResultClick}
-              className="flex items-center justify-between px-4 py-2.5 border-t border-border text-sm font-medium text-accent hover:bg-accent-subtle transition-colors"
-            >
-              <span>View all results for &ldquo;{value.trim()}&rdquo;</span>
-              <ArrowRight size={14} />
-            </Link>
-          )}
         </div>
       )}
     </div>

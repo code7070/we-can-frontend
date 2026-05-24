@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
 import { Search, ArrowLeft } from "lucide-react";
 import { searchQueryOptions } from "@/api/search";
 import { useScope } from "@/hooks/useScope";
+import { useCompanyOptional } from "@/context/company-context";
 import { CommandBarResults, buildFlatItems } from "./CommandBarResults";
 
 interface Props {
@@ -11,8 +11,8 @@ interface Props {
 }
 
 export function MobileSearchOverlay({ onClose }: Props) {
-  const navigate = useNavigate();
   const routeScope = useScope();
+  const company = useCompanyOptional();
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -50,7 +50,7 @@ export function MobileSearchOverlay({ onClose }: Props) {
     enabled,
   });
 
-  const items = buildFlatItems(debouncedQuery, data);
+  const items = buildFlatItems(debouncedQuery, data, company?.slug);
 
   useEffect(() => {
     setSelectedIndex(0);
@@ -69,8 +69,8 @@ export function MobileSearchOverlay({ onClose }: Props) {
       case "Enter": {
         e.preventDefault();
         const el = document.querySelector(
-          `[data-result-index="${selectedIndex}"] a`
-        ) as HTMLAnchorElement | null;
+          `[data-result-index="${selectedIndex}"] a, [data-result-index="${selectedIndex}"] button`
+        ) as HTMLElement | null;
         if (el) {
           el.click();
           onClose();
@@ -108,7 +108,7 @@ export function MobileSearchOverlay({ onClose }: Props) {
               setQuery(e.target.value);
             }}
             onKeyDown={handleKeyDown}
-            placeholder="Search tasks, projects, comments…"
+            placeholder={company ? `Search ${company.name}…` : "Search tasks, projects, comments…"}
             className="flex-1 bg-transparent outline-none text-base text-text-primary placeholder:text-text-disabled"
           />
         </div>

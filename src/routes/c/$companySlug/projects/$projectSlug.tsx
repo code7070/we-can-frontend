@@ -9,8 +9,10 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
-import { projectQueryOptions, createGroup } from "@/api/projects";
+import { companyProjectQueryOptions, createGroup } from "@/api/projects";
+import { useCompany } from "@/context/company-context";
 import { TaskGroup } from "@/components/TaskGroup";
+import { TaskRow } from "@/components/TaskRow";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,9 +20,9 @@ import { toast } from "sonner";
 import { getAvatarColor } from "@/lib/avatar-colors";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/projects/$slug")({
+export const Route = createFileRoute("/c/$companySlug/projects/$projectSlug")({
   loader: ({ context: { queryClient }, params }) =>
-    queryClient.ensureQueryData(projectQueryOptions(params.slug)),
+    queryClient.ensureQueryData(companyProjectQueryOptions(params.companySlug, params.projectSlug)),
   component: ProjectPage,
 });
 
@@ -35,13 +37,14 @@ function AddGroupForm({
 }) {
   const [title, setTitle] = useState("");
   const qc = useQueryClient();
+  const company = useCompany();
   const mutation = useMutation({
     mutationFn: () => createGroup(slug, title.trim(), sortOrder),
     onSuccess: () => {
       toast.success("Group created");
       setTitle("");
       onDone?.();
-      void qc.invalidateQueries({ queryKey: ["project", slug] });
+      void qc.invalidateQueries({ queryKey: ["companies", company.slug, "project", slug] });
     },
     onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to create group"),
   });
@@ -100,9 +103,10 @@ function AddGroupForm({
 type TaskFilter = "all" | "my";
 
 function ProjectContent() {
-  const { slug } = Route.useParams();
+  const { projectSlug } = Route.useParams();
+  const company = useCompany();
   const { isLoggedIn, userId } = useAuth();
-  const { data: project } = useSuspenseQuery(projectQueryOptions(slug));
+  const { data: project } = useSuspenseQuery(companyProjectQueryOptions(company.slug, projectSlug));
   const [isAddingGroup, setIsAddingGroup] = useState(false);
   const [filter, setFilter] = useState<TaskFilter>("all");
 
@@ -119,10 +123,23 @@ function ProjectContent() {
       .filter((g) => g.tasks.length > 0);
   }, [project.groups, filter, userId]);
 
-  const totalTasks = project.groups.reduce((acc, g) => acc + g.tasks.length, 0);
-  const doneTasks = project.groups.reduce((acc, g) => acc + g.tasks.filter((t) => t.isDone).length, 0);
-  const myTotalTasks = filteredGroups.reduce((acc, g) => acc + g.tasks.length, 0);
-  const myDoneTasks = filteredGroups.reduce((acc, g) => acc + g.tasks.filter((t) => t.isDone).length, 0);
+  const filteredUngroupedTasks = useMemo(() => {
+    if (filter === "all" || !userId) return project.ungroupedTasks;
+    return project.ungroupedTasks.filter((t) =>
+      t.assignees.some((a) => a.id === userId)
+    );
+  }, [project.ungroupedTasks, filter, userId]);
+
+  const totalTasks =
+    project.groups.reduce((acc, g) => acc + g.tasks.length, 0) + project.ungroupedTasks.length;
+  const doneTasks =
+    project.groups.reduce((acc, g) => acc + g.tasks.filter((t) => t.isDone).length, 0) +
+    project.ungroupedTasks.filter((t) => t.isDone).length;
+  const myTotalTasks =
+    filteredGroups.reduce((acc, g) => acc + g.tasks.length, 0) + filteredUngroupedTasks.length;
+  const myDoneTasks =
+    filteredGroups.reduce((acc, g) => acc + g.tasks.filter((t) => t.isDone).length, 0) +
+    filteredUngroupedTasks.filter((t) => t.isDone).length;
 
   return (
     <div className="max-w-[720px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
@@ -182,8 +199,8 @@ function ProjectContent() {
         {isLoggedIn && (
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <Link
-              to="/projects/$slug/edit"
-              params={{ slug }}
+              to="/c/$companySlug/projects/$projectSlug/edit"
+              params={{ companySlug: company.slug, projectSlug }}
               className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold
                          text-text-secondary border border-border hover:bg-[#F4F4F5] transition-colors duration-150"
             >
@@ -191,8 +208,8 @@ function ProjectContent() {
               <span className="hidden sm:inline">Edit</span>
             </Link>
             <Link
-              to="/projects/$slug/tasks/new"
-              params={{ slug }}
+              to="/c/$companySlug/projects/$projectSlug/tasks/new"
+              params={{ companySlug: company.slug, projectSlug }}
               className="inline-flex items-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold
                          bg-accent hover:bg-accent-text text-white transition-colors duration-150"
             >
@@ -233,7 +250,7 @@ function ProjectContent() {
       )}
 
       {/* Groups — each in its own card */}
-      {filteredGroups.length === 0 ? (
+      {filteredGroups.length === 0 && filteredUngroupedTasks.length === 0 ? (
         <div className="border border-dashed border-border rounded-xl bg-surface py-12 px-6 text-center">
           <p className="text-sm text-text-secondary">
             {filter === "my"
@@ -255,9 +272,36 @@ function ProjectContent() {
             <TaskGroup
               key={group.id}
               group={group}
-              projectSlug={slug}
+              projectSlug={projectSlug}
             />
           ))}
+          {filteredUngroupedTasks.length > 0 && (
+            <div className="flex flex-col border border-border rounded-xl overflow-hidden bg-surface">
+              <div className="flex items-center gap-2 w-full px-4 py-2.5">
+                <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                  Ungrouped
+                </span>
+                <span className="text-xs text-text-disabled ml-auto">
+                  {filteredUngroupedTasks.length}
+                </span>
+              </div>
+
+              {filteredUngroupedTasks.map((task) => (
+                <TaskRow key={task.id} task={task} projectSlug={projectSlug} />
+              ))}
+
+              {isLoggedIn && filter === "all" && (
+                <Link
+                  to="/c/$companySlug/projects/$projectSlug/tasks/new"
+                  params={{ companySlug: company.slug, projectSlug }}
+                  className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-all duration-150 border-t border-[#F4F4F5] text-text-disabled hover:text-accent hover:bg-[#FAFAFA]"
+                >
+                  <Plus size={14} />
+                  Add ungrouped task
+                </Link>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -266,7 +310,7 @@ function ProjectContent() {
         <div className="mt-4">
           {isAddingGroup ? (
             <AddGroupForm
-              slug={slug}
+              slug={projectSlug}
               sortOrder={project.groups.length}
               onDone={() => setIsAddingGroup(false)}
             />
@@ -312,12 +356,12 @@ function ProjectSkeleton() {
 }
 
 function ProjectPage() {
-  const { slug } = Route.useParams();
+  const { companySlug, projectSlug } = Route.useParams();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   // Render child routes (task detail, create task) when navigating deeper
   const isProjectRoot =
-    pathname === `/projects/${slug}` || pathname === `/projects/${slug}/`;
+    pathname === `/c/${companySlug}/projects/${projectSlug}` || pathname === `/c/${companySlug}/projects/${projectSlug}/`;
 
   if (!isProjectRoot) {
     return <Outlet />;

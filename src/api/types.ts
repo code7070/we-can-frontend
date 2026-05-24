@@ -1,9 +1,20 @@
 export type UserRole = "pm" | "engineer" | "qa" | "designer";
 
+export interface Company {
+  id: string;
+  slug: string;
+  name: string;
+  description?: string;
+  createdAt: string;
+  projectCount?: number;
+  taskCount?: number;
+}
+
 export interface User {
   id: string;
   name: string;
   email?: string;
+  avatarUrl?: string | null;
   role?: UserRole;
   createdAt?: string;
 }
@@ -72,6 +83,7 @@ export interface TaskGroup {
 
 export interface ProjectDetail extends Project {
   groups: TaskGroup[];
+  ungroupedTasks: Task[];
   description?: string;
   createdAt?: string;
   createdBy?: { name: string } | null;
@@ -84,8 +96,8 @@ export interface TaskDetail extends Task {
   branch?: string | null;
   linkedTasks: LinkedTask[];
   thread: Comment[];
-  group: { id: string; title: string };
-  project: { id: string; name: string; slug: string };
+  group: { id: string; title: string } | null;
+  project: { id: string; name: string; slug: string } | null;
   createdAt?: string;
   createdBy?: { id: string; name: string; role?: string | null } | null;
   updatedAt?: string;

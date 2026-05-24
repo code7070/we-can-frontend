@@ -1,15 +1,15 @@
 import { useEffect, useRef } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Folder,
   CheckSquare,
   MessageCircle,
-  ArrowRight,
   LayoutGrid,
   ListTodo,
   Plus,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useCompanyOptional } from "@/context/company-context";
 import { cn } from "@/lib/utils";
 import type { SearchResults } from "@/api/types";
 import type { ScopeId } from "@/hooks/useScope";
@@ -33,10 +33,17 @@ export type FlatItem =
   | { kind: "comment"; key: string; taskId: string; slug: string; body: string; meta: string }
   | { kind: "view-all"; key: string; query: string };
 
-export function buildFlatItems(query: string, data: SearchResults | undefined): FlatItem[] {
+export function buildFlatItems(query: string, data: SearchResults | undefined, companySlug?: string): FlatItem[] {
   const trimmed = query.trim();
 
   if (trimmed.length < 2 || !data) {
+    if (companySlug) {
+      return [
+        { kind: "action", key: "q-tasks", label: "Go to Tasks", to: `/c/${companySlug}/tasks/`, icon: <ListTodo size={14} /> },
+        { kind: "action", key: "q-projects", label: "Go to Projects", to: `/c/${companySlug}/projects/`, icon: <LayoutGrid size={14} /> },
+        { kind: "action", key: "q-new", label: "New Project", to: `/c/${companySlug}/projects/new`, icon: <Plus size={14} /> },
+      ];
+    }
     return [
       { kind: "action", key: "q-tasks", label: "Go to Tasks", to: "/tasks", icon: <ListTodo size={14} /> },
       { kind: "action", key: "q-projects", label: "Go to Projects", to: "/projects", icon: <LayoutGrid size={14} /> },
@@ -188,7 +195,7 @@ interface Props {
 }
 
 export function CommandBarResults({
-  query,
+  query: _query,
   debouncedQuery,
   data,
   isFetching,
@@ -201,6 +208,8 @@ export function CommandBarResults({
   onScopeChange,
   mobile = false,
 }: Props) {
+  const company = useCompanyOptional();
+  const navigate = useNavigate();
   const hasQuery = debouncedQuery.trim().length >= 2;
   const hasResults =
     data && (data.projects.length > 0 || data.tasks.length > 0 || data.comments.length > 0);
@@ -254,14 +263,14 @@ export function CommandBarResults({
               if (item.kind !== "action") return null;
               return (
                 <Row key={item.key} index={i} selected={selectedIndex === i} onHover={onHover}>
-                  <Link
-                    to={item.to as "/tasks" | "/projects" | "/projects/new"}
-                    onClick={onClose}
+                  <button
+                    type="button"
+                    onClick={() => { void navigate({ to: item.to as "/" }); onClose(); }}
                     className="flex items-center gap-2.5 px-3 py-2 text-sm text-text-primary transition-colors w-full"
                   >
                     <span className="text-text-secondary">{item.icon}</span>
                     {item.label}
-                  </Link>
+                  </button>
                 </Row>
               );
             })}
@@ -285,15 +294,22 @@ export function CommandBarResults({
                     if (item.kind !== "project") return null;
                     return (
                       <Row key={item.key} index={i} selected={selectedIndex === i} onHover={onHover}>
-                        <Link
-                          to="/projects/$slug"
-                          params={{ slug: item.slug }}
-                          onClick={onClose}
-                          className="block px-3 py-2 transition-colors"
-                        >
-                          <p className="text-sm font-medium text-text-primary truncate">{item.name}</p>
-                          <p className="text-xs text-text-secondary">{item.meta}</p>
-                        </Link>
+                        {company ? (
+                          <Link
+                            to="/c/$companySlug/projects/$projectSlug"
+                            params={{ companySlug: company.slug, projectSlug: item.slug }}
+                            onClick={onClose}
+                            className="block px-3 py-2 transition-colors"
+                          >
+                            <p className="text-sm font-medium text-text-primary truncate">{item.name}</p>
+                            <p className="text-xs text-text-secondary">{item.meta}</p>
+                          </Link>
+                        ) : (
+                          <div className="block px-3 py-2">
+                            <p className="text-sm font-medium text-text-primary truncate">{item.name}</p>
+                            <p className="text-xs text-text-secondary">{item.meta}</p>
+                          </div>
+                        )}
                       </Row>
                     );
                   })}
@@ -314,15 +330,22 @@ export function CommandBarResults({
                     if (item.kind !== "task") return null;
                     return (
                       <Row key={item.key} index={i} selected={selectedIndex === i} onHover={onHover}>
-                        <Link
-                          to="/projects/$slug/tasks/$taskId"
-                          params={{ slug: item.slug, taskId: item.taskId }}
-                          onClick={onClose}
-                          className="block px-3 py-2 transition-colors"
-                        >
-                          <p className="text-sm font-medium text-text-primary truncate">{item.title}</p>
-                          <p className="text-xs text-text-secondary">{item.projectName}</p>
-                        </Link>
+                        {company ? (
+                          <Link
+                            to="/c/$companySlug/projects/$projectSlug/tasks/$taskId"
+                            params={{ companySlug: company.slug, projectSlug: item.slug, taskId: item.taskId }}
+                            onClick={onClose}
+                            className="block px-3 py-2 transition-colors"
+                          >
+                            <p className="text-sm font-medium text-text-primary truncate">{item.title}</p>
+                            <p className="text-xs text-text-secondary">{item.projectName}</p>
+                          </Link>
+                        ) : (
+                          <div className="block px-3 py-2">
+                            <p className="text-sm font-medium text-text-primary truncate">{item.title}</p>
+                            <p className="text-xs text-text-secondary">{item.projectName}</p>
+                          </div>
+                        )}
                       </Row>
                     );
                   })}
@@ -343,15 +366,22 @@ export function CommandBarResults({
                     if (item.kind !== "comment") return null;
                     return (
                       <Row key={item.key} index={i} selected={selectedIndex === i} onHover={onHover}>
-                        <Link
-                          to="/projects/$slug/tasks/$taskId"
-                          params={{ slug: item.slug, taskId: item.taskId }}
-                          onClick={onClose}
-                          className="block px-3 py-2 transition-colors"
-                        >
-                          <p className="text-sm text-text-primary line-clamp-2">{item.body}</p>
-                          <p className="text-xs text-text-secondary mt-0.5 truncate">{item.meta}</p>
-                        </Link>
+                        {company ? (
+                          <Link
+                            to="/c/$companySlug/projects/$projectSlug/tasks/$taskId"
+                            params={{ companySlug: company.slug, projectSlug: item.slug, taskId: item.taskId }}
+                            onClick={onClose}
+                            className="block px-3 py-2 transition-colors"
+                          >
+                            <p className="text-sm text-text-primary line-clamp-2">{item.body}</p>
+                            <p className="text-xs text-text-secondary mt-0.5 truncate">{item.meta}</p>
+                          </Link>
+                        ) : (
+                          <div className="block px-3 py-2">
+                            <p className="text-sm text-text-primary line-clamp-2">{item.body}</p>
+                            <p className="text-xs text-text-secondary mt-0.5 truncate">{item.meta}</p>
+                          </div>
+                        )}
                       </Row>
                     );
                   })}
@@ -361,18 +391,7 @@ export function CommandBarResults({
         )}
       </div>
 
-      {/* Footer: view all */}
-      {hasQuery && hasResults && (
-        <Link
-          to="/search"
-          search={{ q: query.trim() }}
-          onClick={onClose}
-          className="flex items-center justify-between px-3 py-2.5 border-t border-border text-sm font-medium text-accent hover:bg-accent-subtle transition-colors"
-        >
-          <span>View all results for &ldquo;{query.trim()}&rdquo;</span>
-          <ArrowRight size={14} />
-        </Link>
-      )}
+      {/* Footer: view all — search page removed, results are inline */}
     </div>
   );
 }

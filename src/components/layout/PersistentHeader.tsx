@@ -1,9 +1,11 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown, Settings, Users, LogOut, BookOpen, Plus, Search } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { NavTabs } from "./NavTabs";
 import { MobileSearchOverlay } from "@/components/command-bar/MobileSearchOverlay";
+import { companyQueryOptions } from "@/api/companies";
 
 function UserMenu({ onLogout }: { onLogout: () => void }) {
   const [open, setOpen] = useState(false);
@@ -70,9 +72,23 @@ export function PersistentHeader() {
   const navigate = useNavigate();
   const { isLoggedIn, logout } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const matches = useRouterState({ select: (s) => s.matches });
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   const isAuthPage = pathname === "/login" || pathname === "/register";
+
+  // Detect company slug from active route matches
+  const companyMatch = matches.find(
+    (m) => "companySlug" in (m.params as Record<string, string>)
+  );
+  const companySlug = companyMatch
+    ? (companyMatch.params as { companySlug: string }).companySlug
+    : null;
+
+  const { data: company } = useQuery({
+    ...companyQueryOptions(companySlug!),
+    enabled: !!companySlug,
+  });
 
   function handleLogout() {
     logout();
@@ -90,12 +106,22 @@ export function PersistentHeader() {
           WeCan
         </Link>
 
-        {/* Nav tabs — desktop only, hidden on auth pages */}
-        {!isAuthPage && (
+        {/* Company name label */}
+        {company && (
+          <span
+            className="text-sm text-text-secondary hidden sm:inline"
+            title={company.slug}
+          >
+            {company.name}
+          </span>
+        )}
+
+        {/* Nav tabs — desktop only, inside company routes only */}
+        {!isAuthPage && company && (
           <>
             <div className="w-px h-4 bg-border shrink-0 hidden lg:block" />
             <div className="hidden lg:block">
-              <NavTabs />
+              <NavTabs companySlug={company.slug} />
             </div>
           </>
         )}
@@ -104,8 +130,8 @@ export function PersistentHeader() {
 
         {/* Right side actions */}
         <div className="flex items-center gap-1 sm:gap-3 shrink-0">
-          {/* Mobile search trigger */}
-          {!isAuthPage && (
+          {/* Mobile search trigger — only inside a company */}
+          {!isAuthPage && company && (
             <button
               onClick={() => setMobileSearchOpen(true)}
               className="flex lg:hidden items-center justify-center w-8 h-8 rounded-md text-text-secondary hover:text-text-primary hover:bg-[#F4F4F5] transition-colors"
@@ -115,10 +141,11 @@ export function PersistentHeader() {
             </button>
           )}
 
-          {/* Desktop "New" button */}
-          {isLoggedIn && !isAuthPage && (
+          {/* Desktop "New" button — only inside company */}
+          {isLoggedIn && !isAuthPage && company && (
             <Link
-              to="/projects/new"
+              to="/c/$companySlug/projects/new"
+              params={{ companySlug: company.slug }}
               className="hidden sm:inline-flex items-center gap-1.5 text-sm font-medium text-surface bg-accent hover:bg-accent-text px-3 py-1.5 rounded-md transition-colors"
             >
               <Plus size={14} />

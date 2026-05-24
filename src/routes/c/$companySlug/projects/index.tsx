@@ -2,23 +2,25 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
 import { Suspense, useMemo, useState } from "react";
 import { Plus, AlertCircle } from "lucide-react";
-import { projectsQueryOptions } from "@/api/projects";
-import { tasksListQueryOptions } from "@/api/tasks";
+import { companyProjectsQueryOptions } from "@/api/projects";
+import { companyTasksListQueryOptions } from "@/api/tasks";
 import { ProjectCard, ProjectCardSkeleton } from "@/components/ProjectCard";
 import { useAuth } from "@/hooks/useAuth";
+import { useCompany } from "@/context/company-context";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/projects/")({
-  loader: ({ context: { queryClient } }) =>
-    queryClient.ensureQueryData(projectsQueryOptions),
+export const Route = createFileRoute("/c/$companySlug/projects/")({
+  loader: ({ context: { queryClient }, params }) =>
+    queryClient.ensureQueryData(companyProjectsQueryOptions(params.companySlug)),
   component: ProjectsPage,
 });
 
 // ── Orphan banner ────────────────────────────────────────────────────────────
 
 function OrphanBanner() {
+  const company = useCompany();
   const { data } = useQuery({
-    ...tasksListQueryOptions({ project_id: "null" }),
+    ...companyTasksListQueryOptions(company.slug, { project_id: "null" }),
     select: (d) => d.total,
   });
 
@@ -35,7 +37,8 @@ function OrphanBanner() {
         </p>
       </div>
       <Link
-        to="/tasks"
+        to="/c/$companySlug/tasks"
+        params={{ companySlug: company.slug }}
         className="text-sm font-medium text-[#D97706] hover:text-[#92400E] whitespace-nowrap
                    transition-colors duration-150 shrink-0"
       >
@@ -58,7 +61,8 @@ const SORT_OPTIONS: { id: SortKey; label: string }[] = [
 // ── Projects grid ─────────────────────────────────────────────────────────────
 
 function ProjectsGrid() {
-  const { data: projects } = useSuspenseQuery(projectsQueryOptions);
+  const company = useCompany();
+  const { data: projects } = useSuspenseQuery(companyProjectsQueryOptions(company.slug));
   const [sort, setSort] = useState<SortKey>("name");
 
   const sorted = useMemo(() => {
@@ -98,7 +102,8 @@ function ProjectsGrid() {
         <div className="border border-dashed border-border rounded-xl bg-surface py-12 px-6 text-center">
           <p className="text-sm text-text-secondary">No projects yet.</p>
           <Link
-            to="/projects/new"
+            to="/c/$companySlug/projects/new"
+            params={{ companySlug: company.slug }}
             className="mt-2 inline-block text-sm font-semibold text-accent hover:text-accent-text
                        transition-colors duration-150"
           >
@@ -138,6 +143,7 @@ function ProjectsSkeleton() {
 
 function ProjectsPage() {
   const { isLoggedIn } = useAuth();
+  const company = useCompany();
 
   return (
     <div className="max-w-[720px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
@@ -146,7 +152,8 @@ function ProjectsPage() {
         <h1 className="text-lg sm:text-xl font-bold text-text-primary tracking-tight">Projects</h1>
         {isLoggedIn && (
           <Link
-            to="/projects/new"
+            to="/c/$companySlug/projects/new"
+            params={{ companySlug: company.slug }}
             className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold
                        bg-accent hover:bg-accent-text text-white transition-colors duration-150 shrink-0"
           >

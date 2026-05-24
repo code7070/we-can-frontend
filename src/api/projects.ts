@@ -1,5 +1,5 @@
 import { queryOptions } from "@tanstack/react-query";
-import { apiFetch } from "./client";
+import { apiFetch, companyApiUrl } from "./client";
 import type { Project, ProjectDetail, CreateProjectInput, UpdateProjectInput } from "./types";
 
 export const projectsQueryOptions = queryOptions({
@@ -52,4 +52,57 @@ export function deleteGroup(projectSlug: string, groupId: string) {
     `/projects/${projectSlug}/groups/${groupId}`,
     { method: "DELETE" }
   );
+}
+
+export const companyProjectsQueryOptions = (companySlug: string) =>
+  queryOptions({
+    queryKey: ["companies", companySlug, "projects"],
+    queryFn: () => {
+      const url = companyApiUrl(companySlug, "/projects");
+      return fetch(url).then((r) => r.json()).then((r) => r.data as Project[]);
+    },
+  });
+
+export const companyProjectQueryOptions = (companySlug: string, projectSlug: string) =>
+  queryOptions({
+    queryKey: ["companies", companySlug, "project", projectSlug],
+    queryFn: () => {
+      const url = companyApiUrl(companySlug, `/projects/${projectSlug}`);
+      return fetch(url).then((r) => r.json()).then((r) => r.data as ProjectDetail);
+    },
+  });
+
+export function createCompanyProject(
+  companySlug: string,
+  input: CreateProjectInput
+): Promise<Project> {
+  const token = localStorage.getItem("taskflow_token");
+  return fetch(companyApiUrl(companySlug, "/projects"), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(input),
+  })
+    .then((r) => r.json())
+    .then((r) => r.data as Project);
+}
+
+export function updateCompanyProject(
+  companySlug: string,
+  projectSlug: string,
+  input: UpdateProjectInput
+): Promise<Project> {
+  const token = localStorage.getItem("taskflow_token");
+  return fetch(companyApiUrl(companySlug, `/projects/${projectSlug}`), {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(input),
+  })
+    .then((r) => r.json())
+    .then((r) => r.data as Project);
 }

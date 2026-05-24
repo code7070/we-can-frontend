@@ -3,15 +3,16 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { tasksListQueryOptions } from "@/api/tasks";
+import { companyTasksListQueryOptions } from "@/api/tasks";
 import type { TasksFilter } from "@/api/tasks";
+import { useCompany } from "@/context/company-context";
 import { TaskFilters } from "@/components/TaskFilters";
 import type { TaskFilter } from "@/components/TaskFilters";
 import { TasksTable } from "@/components/TasksTable";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
 
-export const Route = createFileRoute("/tasks/")({
+export const Route = createFileRoute("/c/$companySlug/tasks/")({
   component: TasksPage,
 });
 
@@ -41,6 +42,7 @@ function TasksSkeleton() {
 
 function TasksPage() {
   const { isLoggedIn, userId } = useAuth();
+  const company = useCompany();
   const [filter, setFilter] = useState<TaskFilter>("all");
 
   const apiFilters: TasksFilter = useMemo(() => {
@@ -49,7 +51,7 @@ function TasksPage() {
     return {};
   }, [filter, userId]);
 
-  const { data, isLoading } = useQuery(tasksListQueryOptions(apiFilters));
+  const { data, isLoading } = useQuery(companyTasksListQueryOptions(company.slug, apiFilters));
 
   const tasks = useMemo(() => {
     if (!data) return [];
@@ -80,7 +82,8 @@ function TasksPage() {
         </div>
         {isLoggedIn && (
           <Link
-            to="/tasks/new"
+            to="/c/$companySlug/tasks/new"
+            params={{ companySlug: company.slug }}
             className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold
                        bg-accent hover:bg-accent-text text-white transition-colors duration-150 shrink-0"
           >
@@ -118,7 +121,8 @@ function TasksPage() {
           emptyAction={
             filter === "all" && isLoggedIn && (!data || data.total === 0) ? (
               <Link
-                to="/tasks/new"
+                to="/c/$companySlug/tasks/new"
+                params={{ companySlug: company.slug }}
                 className="text-sm font-semibold text-accent hover:text-accent-text transition-colors duration-150"
               >
                 Create your first task

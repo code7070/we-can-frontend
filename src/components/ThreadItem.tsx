@@ -34,7 +34,10 @@ export function ThreadItem({ comment }: Props) {
   return (
     <div className="flex gap-3">
       <Avatar className="w-8 h-8 shrink-0">
-        <AvatarImage src={comment.author.avatarUrl} alt={comment.author.name} />
+        <AvatarImage
+          src={comment.author.avatarUrl ?? undefined}
+          alt={comment.author.name}
+        />
         <AvatarFallback
           className="text-xs text-white"
           style={{ backgroundColor: getAvatarColor(comment.author.name) }}
