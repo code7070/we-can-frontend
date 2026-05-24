@@ -29,11 +29,9 @@ function RootLayout() {
           <PersistentHeader />
           {!isAuthPage && (
             <div className="relative z-[90] isolate bg-surface/0 backdrop-blur">
-              <div className="max-w-content mx-auto px-4 sm:px-6 py-3 grid grid-cols-2 items-center gap-4">
-                <div className="min-w-0 flex-1">
-                  <Breadcrumb />
-                </div>
-                <CommandBar className="hidden w-full lg:block flex-none relative z-[110]" />
+              <div className="max-w-content mx-auto px-4 sm:px-6 py-3 flex flex-col md:flex-row items-center gap-4">
+                <Breadcrumb />
+                <CommandBar className="flex-1 transition-all lg:block relative z-[110]" />
               </div>
             </div>
           )}

@@ -4,15 +4,18 @@ import { ChevronRight } from "lucide-react";
 function formatSlug(slug: string) {
   return slug
     .split("-")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))?.[0];
 }
 
 export function Breadcrumb() {
   const matches = useRouterState({ select: (s) => s.matches });
 
-  const projectMatch = matches.find((m) => "slug" in (m.params as Record<string, string>));
-  const taskMatch = matches.find((m) => "taskId" in (m.params as Record<string, string>));
+  const projectMatch = matches.find(
+    (m) => "slug" in (m.params as Record<string, string>),
+  );
+  const taskMatch = matches.find(
+    (m) => "taskId" in (m.params as Record<string, string>),
+  );
 
   if (!projectMatch) return null;
 
@@ -40,7 +43,9 @@ export function Breadcrumb() {
           <span className="text-text-primary truncate max-w-[140px]">Task</span>
         </>
       ) : (
-        <span className="text-text-primary truncate max-w-[200px]">{formatSlug(slug)}</span>
+        <span className="text-text-primary truncate max-w-[200px]">
+          {formatSlug(slug)}
+        </span>
       )}
     </nav>
   );
