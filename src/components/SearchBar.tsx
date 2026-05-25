@@ -57,7 +57,7 @@ export function SearchBar({ onSearch, defaultValue = "" }: Props) {
           "text-sm sm:text-base text-text-primary placeholder:text-text-disabled bg-surface",
           "outline-none transition-all duration-150",
           focused
-            ? "border-accent shadow-[0_0_0_3px_rgba(37,99,235,0.15)]"
+            ? "border-accent shadow-[0_0_0_3px_var(--tf-focus-ring)]"
             : "border-border shadow-none"
         )}
       />

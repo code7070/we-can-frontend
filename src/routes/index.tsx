@@ -37,14 +37,14 @@ function CompanyPicker({ userId }: { userId: string }) {
           </div>
         ) : companies.length === 0 ? (
           <div className="rounded-xl border border-dashed border-border bg-surface px-6 py-10 text-center">
-            <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-[#F4F4F5]">
+            <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-hover">
               <Building2 size={18} className="text-text-secondary" strokeWidth={1.5} />
             </div>
             <p className="text-sm font-medium text-text-primary">No companies yet</p>
             <p className="mt-1 text-sm text-text-secondary">Create your first company to get started.</p>
             <Link
               to="/company/new"
-              className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-text transition-colors duration-150"
+              className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:bg-accent-text transition-colors duration-150"
             >
               <Plus size={14} />
               Create a company
@@ -57,7 +57,7 @@ function CompanyPicker({ userId }: { userId: string }) {
                 key={company.id}
                 to="/c/$companySlug"
                 params={{ companySlug: company.slug }}
-                className="flex items-center justify-between rounded-xl border border-border bg-surface px-4 py-3.5 hover:bg-[#F4F4F5] hover:border-[#D4D4D8] transition-colors duration-150"
+                className="flex items-center justify-between rounded-xl border border-border bg-surface px-4 py-3.5 hover:bg-hover hover:border-border-strong transition-colors duration-150"
               >
                 <div className="min-w-0">
                   <p className="font-medium text-text-primary">{company.name}</p>
@@ -76,7 +76,7 @@ function CompanyPicker({ userId }: { userId: string }) {
 
             <Link
               to="/company/new"
-              className="flex items-center gap-2 rounded-xl border border-border px-4 py-3.5 text-sm text-text-secondary hover:bg-[#F4F4F5] hover:border-[#D4D4D8] transition-colors duration-150"
+              className="flex items-center gap-2 rounded-xl border border-border px-4 py-3.5 text-sm text-text-secondary hover:bg-hover hover:border-border-strong transition-colors duration-150"
             >
               <Plus size={14} />
               Create a company
@@ -111,7 +111,7 @@ function PublicLanding() {
       <div className="mt-6 flex items-center gap-3">
         <Link
           to="/login"
-          className="inline-flex items-center rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-text transition-colors duration-150"
+          className="inline-flex items-center rounded-lg bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:bg-accent-text transition-colors duration-150"
         >
           Sign in
         </Link>

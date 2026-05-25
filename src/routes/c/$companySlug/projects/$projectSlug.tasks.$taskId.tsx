@@ -76,8 +76,8 @@ function Checkbox({
       style={{
         width: size,
         height: size,
-        border: `2px solid ${checked ? "#2563EB" : hovered ? "#2563EB" : "#D4D4D8"}`,
-        background: checked ? "#2563EB" : "#FFF",
+        border: `2px solid ${checked ? "var(--accent)" : hovered ? "var(--accent)" : "var(--tf-border-strong)"}`,
+        background: checked ? "var(--accent)" : "var(--tf-surface)",
         cursor: disabled ? "default" : "pointer",
       }}
     >
@@ -87,7 +87,7 @@ function Checkbox({
           height={size * 0.55}
           viewBox="0 0 24 24"
           fill="none"
-          stroke="#FFF"
+          stroke="var(--accent-foreground)"
           strokeWidth="3"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -119,7 +119,7 @@ function FileAttachment({ name, size: fileSize, mimeType }: { name: string; size
   const [hovered, setHovered] = useState(false);
   const ext = name.split(".").pop()?.toUpperCase() ?? "FILE";
   const typeColors: Record<string, string> = {
-    PNG: "#2563EB", JPG: "#2563EB", JPEG: "#2563EB", GIF: "#2563EB",
+    PNG: "#3f3f46", JPG: "#3f3f46", JPEG: "#3f3f46", GIF: "#3f3f46",
     PDF: "#DC2626", FIG: "#059669", ZIP: "#71717A", MP4: "#D97706",
   };
   const bg = typeColors[ext] ?? "#71717A";
@@ -128,7 +128,7 @@ function FileAttachment({ name, size: fileSize, mimeType }: { name: string; size
   return (
     <div
       className="flex items-center gap-2.5 px-3.5 py-2.5 border border-border rounded-lg cursor-pointer transition-colors duration-150 max-w-[280px]"
-      style={{ background: hovered ? "#F4F4F5" : "#FFF" }}
+      style={{ background: hovered ? "var(--tf-hover)" : "var(--tf-surface)" }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
@@ -151,7 +151,7 @@ function FileAttachment({ name, size: fileSize, mimeType }: { name: string; size
 
 function MetaRow({ icon, label, children }: { icon: React.ReactNode; label: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-0 py-2.5 border-b border-[#F4F4F5] last:border-b-0">
+    <div className="flex items-center gap-0 py-2.5 border-b border-hover last:border-b-0">
       <div className="flex items-center gap-1.5 w-36 shrink-0 text-text-secondary">
         {icon}
         <span className="text-sm font-medium">{label}</span>
@@ -217,14 +217,14 @@ function AssigneePicker({
           return (
             <div
               key={u.id}
-              className="inline-flex items-center gap-1.5 pl-1 pr-2 py-0.5 rounded-full bg-[#F4F4F5] border border-transparent hover:bg-accent-subtle hover:border-[#BFDBFE] transition-colors duration-150"
+              className="inline-flex items-center gap-1.5 pl-1 pr-2 py-0.5 rounded-full bg-hover border border-transparent hover:bg-accent-subtle hover:border-accent-border transition-colors duration-150"
             >
               <Avatar name={u.name} initials={initials} size={20} />
               <span className="text-xs font-medium text-text-primary">{u.name}</span>
               <button
                 type="button"
                 onClick={() => toggle(u.id)}
-                className="w-4 h-4 rounded-full bg-border text-text-secondary hover:bg-[#DBEAFE] flex items-center justify-center"
+                className="w-4 h-4 rounded-full bg-border text-text-secondary hover:bg-accent-hover flex items-center justify-center"
               >
                 <X size={8} />
               </button>
@@ -234,7 +234,7 @@ function AssigneePicker({
         <button
           type="button"
           onClick={() => setOpen(!open)}
-          className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium text-text-secondary hover:bg-[#F4F4F5] transition-colors duration-150"
+          className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium text-text-secondary hover:bg-hover transition-colors duration-150"
         >
           <Plus size={12} />
           Add
@@ -243,7 +243,7 @@ function AssigneePicker({
 
       {open && (
         <div className="absolute top-full left-0 mt-1 w-72 bg-surface border border-border rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.06)] z-50 overflow-hidden">
-          <div className="p-2 border-b border-[#F4F4F5]">
+          <div className="p-2 border-b border-hover">
             <input
               autoFocus
               placeholder="Search members…"
@@ -260,7 +260,7 @@ function AssigneePicker({
                 <div
                   key={u.id}
                   onClick={() => toggle(u.id)}
-                  className="flex items-center gap-2.5 px-3 py-2 cursor-pointer hover:bg-[#F4F4F5] transition-colors duration-150"
+                  className="flex items-center gap-2.5 px-3 py-2 cursor-pointer hover:bg-hover transition-colors duration-150"
                 >
                   <Avatar name={u.name} initials={initials} size={26} />
                   <div className="flex-1 min-w-0">
@@ -473,7 +473,7 @@ function TaskDetailContent() {
             </h1>
           )}
           <div className="flex items-center gap-1.5 mt-1.5 text-sm text-text-secondary">
-            <span className="bg-[#F4F4F5] px-2 py-0.5 rounded text-xs font-medium text-text-secondary">
+            <span className="bg-hover px-2 py-0.5 rounded text-xs font-medium text-text-secondary">
               {taskGroupTitle}
             </span>
             <span>·</span>
@@ -484,7 +484,7 @@ function TaskDetailContent() {
           <button
             onClick={enterEditMode}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium
-                       text-text-secondary hover:bg-[#F4F4F5] transition-colors duration-150 shrink-0 mt-0.5"
+                       text-text-secondary hover:bg-hover transition-colors duration-150 shrink-0 mt-0.5"
           >
             <Pencil size={14} />
             Edit
@@ -526,7 +526,7 @@ function TaskDetailContent() {
                 onChange={(e) => setEditDueDate(e.target.value)}
                 className={cn(
                   "h-8 px-2.5 rounded-md bg-surface text-sm font-sans outline-none",
-                  "border border-border focus:border-accent focus:[box-shadow:0_0_0_3px_rgba(37,99,235,0.12)]",
+                  "border border-border focus:border-accent focus:[box-shadow:0_0_0_3px_var(--tf-focus-ring)]",
                   "transition-all duration-150",
                   editDueDate ? "text-text-primary" : "text-text-disabled"
                 )}
@@ -535,7 +535,7 @@ function TaskDetailContent() {
                 <button
                   type="button"
                   onClick={() => setEditDueDate("")}
-                  className="text-xs font-medium text-text-secondary hover:text-text-primary px-1.5 py-1 rounded hover:bg-[#F4F4F5] transition-colors duration-150"
+                  className="text-xs font-medium text-text-secondary hover:text-text-primary px-1.5 py-1 rounded hover:bg-hover transition-colors duration-150"
                 >
                   Clear
                 </button>
@@ -558,12 +558,12 @@ function TaskDetailContent() {
                 placeholder="e.g. feat/login-flow"
                 className={cn(
                   "w-full max-w-[320px] h-8 px-2.5 rounded-md bg-surface text-sm font-mono outline-none",
-                  "border border-border focus:border-accent focus:[box-shadow:0_0_0_3px_rgba(37,99,235,0.12)]",
+                  "border border-border focus:border-accent focus:[box-shadow:0_0_0_3px_var(--tf-focus-ring)]",
                   "transition-all duration-150 text-text-primary"
                 )}
               />
             ) : task.branch ? (
-              <span className="font-mono text-sm text-text-primary bg-[#F4F4F5] px-2 py-0.5 rounded">
+              <span className="font-mono text-sm text-text-primary bg-hover px-2 py-0.5 rounded">
                 {task.branch}
               </span>
             ) : (
@@ -667,7 +667,7 @@ function TaskDetailContent() {
           <button
             onClick={cancelEdit}
             className="px-4 py-2 rounded-lg text-sm font-semibold text-text-secondary
-                       hover:bg-[#F4F4F5] transition-colors duration-150"
+                       hover:bg-hover transition-colors duration-150"
           >
             Cancel
           </button>
@@ -677,7 +677,7 @@ function TaskDetailContent() {
             className={cn(
               "inline-flex items-center gap-1.5 px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-150",
               editTitle.trim() && !updateTask.isPending
-                ? "bg-accent hover:bg-accent-text text-white cursor-pointer"
+                ? "bg-accent hover:bg-accent-text text-accent-foreground cursor-pointer"
                 : "bg-border text-text-disabled cursor-not-allowed"
             )}
           >
@@ -702,19 +702,19 @@ function TaskDetailContent() {
                   <Link
                     to="/c/$companySlug/projects/$projectSlug/tasks/$taskId"
                     params={{ companySlug: company.slug, projectSlug: lt.project.slug, taskId: lt.id }}
-                    className="flex items-center gap-3 px-4 py-3.5 bg-surface border border-border rounded-lg hover:bg-[#FAFAFA] transition-colors duration-150"
-                    style={{ borderLeft: "3px solid #2563EB" }}
+                    className="flex items-center gap-3 px-4 py-3.5 bg-surface border border-border rounded-lg hover:bg-soft transition-colors duration-150"
+                    style={{ borderLeft: "3px solid var(--accent)" }}
                   >
                     <div
                       className="flex items-center justify-center rounded-full shrink-0"
                       style={{
                         width: 18, height: 18,
-                        border: `2px solid ${lt.isDone ? "#2563EB" : "#D4D4D8"}`,
-                        background: lt.isDone ? "#2563EB" : "#FFF",
+                        border: `2px solid ${lt.isDone ? "var(--accent)" : "var(--tf-border-strong)"}`,
+                        background: lt.isDone ? "var(--accent)" : "var(--tf-surface)",
                       }}
                     >
                       {lt.isDone && (
-                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#FFF" strokeWidth="3" strokeLinecap="round">
+                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="var(--accent-foreground)" strokeWidth="3" strokeLinecap="round">
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
                       )}
@@ -760,7 +760,7 @@ function TaskDetailContent() {
               .slice(0, 2)
               .toUpperCase();
             return (
-              <div key={c.id} className="flex gap-3 px-6 py-5 border-b border-[#F4F4F5] last:border-b-0">
+              <div key={c.id} className="flex gap-3 px-6 py-5 border-b border-hover last:border-b-0">
                 <Avatar name={c.author.name} initials={initials} size={36} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline gap-2 mb-1.5 flex-wrap">
@@ -789,7 +789,7 @@ function TaskDetailContent() {
           <div className={cn("px-6 py-4", task.thread.length > 0 && "border-t border-border")}>
             {isLoggedIn ? (
               <form onSubmit={handleCommentSubmit} className="flex gap-3 items-start">
-                <div className="w-9 h-9 rounded-full bg-[#D97706] flex items-center justify-center text-white text-xs font-semibold shrink-0">
+                <div className="w-9 h-9 rounded-full bg-warning flex items-center justify-center text-white text-xs font-semibold shrink-0">
                   AM
                 </div>
                 <div className="flex-1 min-w-0">
@@ -805,7 +805,7 @@ function TaskDetailContent() {
                       {commentAttachments.map((a, i) => (
                         <div
                           key={`${a.name}-${i}`}
-                          className="inline-flex items-center gap-2 pl-2 pr-1 py-1 bg-[#F4F4F5] border border-border rounded-full text-xs"
+                          className="inline-flex items-center gap-2 pl-2 pr-1 py-1 bg-hover border border-border rounded-full text-xs"
                         >
                           {a.type === "image" ? (
                             <img src={a.url} alt={a.name} className="w-5 h-5 rounded object-cover" />
@@ -818,7 +818,7 @@ function TaskDetailContent() {
                             onClick={() =>
                               setCommentAttachments((prev) => prev.filter((_, j) => j !== i))
                             }
-                            className="w-4 h-4 rounded-full bg-border text-text-secondary hover:bg-[#DBEAFE] flex items-center justify-center"
+                            className="w-4 h-4 rounded-full bg-border text-text-secondary hover:bg-accent-hover flex items-center justify-center"
                           >
                             <X size={8} />
                           </button>
@@ -831,7 +831,7 @@ function TaskDetailContent() {
                       type="button"
                       onClick={() => setShowMedia(true)}
                       className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg
-                                 text-sm font-medium text-text-secondary hover:bg-[#F4F4F5] transition-colors duration-150"
+                                 text-sm font-medium text-text-secondary hover:bg-hover transition-colors duration-150"
                     >
                       <Paperclip size={14} />
                       Attach
@@ -843,7 +843,7 @@ function TaskDetailContent() {
                         "inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-semibold",
                         "transition-all duration-150",
                         (!commentEmpty || commentAttachments.length > 0) && !addComment.isPending
-                          ? "bg-accent hover:bg-accent-text text-white cursor-pointer"
+                          ? "bg-accent hover:bg-accent-text text-accent-foreground cursor-pointer"
                           : "bg-border text-text-disabled cursor-not-allowed"
                       )}
                     >
@@ -895,7 +895,7 @@ function TaskDetailSkeleton() {
       </div>
       <div className="border border-border rounded-xl p-6 flex flex-col gap-4">
         {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="flex gap-3 pb-5 border-b border-[#F4F4F5] last:border-b-0">
+          <div key={i} className="flex gap-3 pb-5 border-b border-hover last:border-b-0">
             <Skeleton className="w-9 h-9 rounded-full shrink-0" />
             <div className="flex-1 flex flex-col gap-2">
               <Skeleton className="h-3 w-40" />

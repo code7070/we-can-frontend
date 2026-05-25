@@ -134,8 +134,8 @@ export function GlobalSearchBar({
             : "pl-9 pr-8 py-1.5 rounded-lg border text-sm",
           focused
             ? isHero
-              ? "border-accent shadow-[0_0_0_3px_rgba(37,99,235,0.15)]"
-              : "border-accent shadow-[0_0_0_2px_rgba(37,99,235,0.12)]"
+              ? "border-accent shadow-[0_0_0_3px_var(--tf-focus-ring)]"
+              : "border-accent shadow-[0_0_0_2px_var(--tf-focus-ring)]"
             : "border-border"
         )}
       />
@@ -195,7 +195,7 @@ export function GlobalSearchBar({
                         to="/c/$companySlug/projects/$projectSlug"
                         params={{ companySlug: company.slug, projectSlug: p.slug }}
                         onClick={handleResultClick}
-                        className="block px-4 py-2 hover:bg-[#F4F4F5] transition-colors"
+                        className="block px-4 py-2 hover:bg-hover transition-colors"
                       >
                         <p className="text-sm font-medium text-text-primary truncate">
                           {p.name}
@@ -219,7 +219,7 @@ export function GlobalSearchBar({
                         to="/c/$companySlug/projects/$projectSlug/tasks/$taskId"
                         params={{ companySlug: company.slug, projectSlug: t.project.slug, taskId: t.id }}
                         onClick={handleResultClick}
-                        className="block px-4 py-2 hover:bg-[#F4F4F5] transition-colors"
+                        className="block px-4 py-2 hover:bg-hover transition-colors"
                       >
                         <p className="text-sm font-medium text-text-primary truncate">
                           {t.title}
@@ -247,7 +247,7 @@ export function GlobalSearchBar({
                           taskId: c.task.id,
                         }}
                         onClick={handleResultClick}
-                        className="block px-4 py-2 hover:bg-[#F4F4F5] transition-colors"
+                        className="block px-4 py-2 hover:bg-hover transition-colors"
                       >
                         <p className="text-sm text-text-primary line-clamp-2">
                           {c.body}

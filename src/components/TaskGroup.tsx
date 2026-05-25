@@ -89,7 +89,7 @@ export function TaskGroup({ group, projectSlug }: Props) {
   return (
     <div className="flex flex-col border border-border rounded-xl overflow-hidden bg-surface">
       <div
-        className="flex items-center gap-2 w-full px-4 py-2.5 hover:bg-[#F4F4F5] transition-colors duration-150 group"
+        className="flex items-center gap-2 w-full px-4 py-2.5 hover:bg-hover transition-colors duration-150 group"
       >
         <button onClick={() => setIsOpen((v) => !v)} className="flex items-center gap-2 flex-1 text-left">
           <ChevronDown
@@ -109,7 +109,7 @@ export function TaskGroup({ group, projectSlug }: Props) {
               onClick={(e) => e.stopPropagation()}
               className="flex-1 h-7 px-2 rounded-md bg-surface text-xs font-semibold text-text-primary
                          uppercase tracking-wider border border-accent outline-none
-                         [box-shadow:0_0_0_3px_rgba(37,99,235,0.12)]"
+                         [box-shadow:0_0_0_3px_var(--tf-focus-ring)]"
             />
           ) : (
             <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
@@ -125,7 +125,7 @@ export function TaskGroup({ group, projectSlug }: Props) {
           <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
             <button
               onClick={handleStartRename}
-              className="w-7 h-7 rounded-md flex items-center justify-center text-text-disabled hover:text-text-secondary hover:bg-[#E4E4E7] transition-colors duration-150"
+              className="w-7 h-7 rounded-md flex items-center justify-center text-text-disabled hover:text-text-secondary hover:bg-border-strong transition-colors duration-150"
               title="Rename group"
             >
               <Pencil size={13} />
@@ -136,7 +136,7 @@ export function TaskGroup({ group, projectSlug }: Props) {
                 "w-7 h-7 rounded-md flex items-center justify-center transition-colors duration-150",
                 deleting
                   ? "text-white bg-danger hover:bg-red-700"
-                  : "text-text-disabled hover:text-danger hover:bg-[#FEE2E2]"
+                  : "text-text-disabled hover:text-danger hover:bg-danger-bg"
               )}
               title={deleting ? "Click again to confirm" : "Delete group"}
             >
@@ -150,13 +150,13 @@ export function TaskGroup({ group, projectSlug }: Props) {
             <button
               onClick={(e) => { e.stopPropagation(); handleRenameSubmit(); }}
               disabled={!editValue.trim() || renameMutation.isPending}
-              className="w-7 h-7 rounded-md flex items-center justify-center text-accent hover:bg-[#DBEAFE] transition-colors duration-150"
+              className="w-7 h-7 rounded-md flex items-center justify-center text-accent hover:bg-accent-hover transition-colors duration-150"
             >
               <Check size={14} />
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); setEditing(false); }}
-              className="w-7 h-7 rounded-md flex items-center justify-center text-text-disabled hover:text-text-secondary hover:bg-[#E4E4E7] transition-colors duration-150"
+              className="w-7 h-7 rounded-md flex items-center justify-center text-text-disabled hover:text-text-secondary hover:bg-border-strong transition-colors duration-150"
             >
               <X size={14} />
             </button>
@@ -166,7 +166,7 @@ export function TaskGroup({ group, projectSlug }: Props) {
 
       {isOpen && (
         <>
-          {group.tasks.map((task) => (
+          {[...group.tasks].sort((a, b) => b.id.localeCompare(a.id)).map((task) => (
             <TaskRow key={task.id} task={task} projectSlug={projectSlug} />
           ))}
 
@@ -179,8 +179,8 @@ export function TaskGroup({ group, projectSlug }: Props) {
             onMouseLeave={() => setAddHovered(false)}
             className={cn(
               "flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-all duration-150",
-              "border-t border-[#F4F4F5]",
-              addHovered ? "text-accent bg-[#FAFAFA]" : "text-text-disabled bg-transparent"
+              "border-t border-hover",
+              addHovered ? "text-accent bg-soft" : "text-text-disabled bg-transparent"
             )}
           >
             <Plus size={14} />

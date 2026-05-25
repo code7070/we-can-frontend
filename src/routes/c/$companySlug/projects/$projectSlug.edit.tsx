@@ -116,7 +116,7 @@ function EditProjectForm() {
             to="/c/$companySlug/projects/$projectSlug"
             params={{ companySlug: company.slug, projectSlug }}
             className="px-4 py-2 rounded-lg text-sm font-semibold text-text-secondary
-                       hover:bg-[#F4F4F5] transition-colors duration-150"
+                       hover:bg-hover transition-colors duration-150"
           >
             Cancel
           </Link>
@@ -127,7 +127,7 @@ function EditProjectForm() {
               "inline-flex items-center gap-1.5 px-6 py-2.5 rounded-lg text-sm font-semibold",
               "transition-all duration-150",
               canSubmit
-                ? "bg-accent hover:bg-accent-text text-white cursor-pointer"
+                ? "bg-accent hover:bg-accent-text text-accent-foreground cursor-pointer"
                 : "bg-border text-text-disabled cursor-not-allowed"
             )}
           >

@@ -70,7 +70,7 @@ function NewCompanyPage() {
           <button
             type="submit"
             disabled={submitting || !name.trim()}
-            className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-text transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:bg-accent-text transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitting ? "Creating…" : "Create company"}
           </button>

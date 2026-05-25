@@ -46,6 +46,7 @@ export interface Task {
   isDone: boolean;
   assignees: User[];
   dueDate?: string;
+  closedAt?: string | null;
   commentCount?: number;
 }
 
@@ -152,6 +153,7 @@ export interface TaskListItem {
   dueDate?: string | null;
   branch?: string | null;
   updatedAt?: string;
+  closedAt?: string | null;
   project: { id: string; slug: string; name: string } | null;
   group: { id: string; title: string } | null;
   assignees: User[];

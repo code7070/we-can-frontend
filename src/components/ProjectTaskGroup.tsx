@@ -58,14 +58,24 @@ function TaskRow({
   const inner = (
     <>
       {task.isDone ? (
-        <CheckCircle2 size={14} className="text-success shrink-0" strokeWidth={2} />
+        <CheckCircle2
+          size={14}
+          className="text-success shrink-0"
+          strokeWidth={2}
+        />
       ) : (
-        <Circle size={14} className="text-text-disabled shrink-0" strokeWidth={1.5} />
+        <Circle
+          size={14}
+          className="text-text-disabled shrink-0"
+          strokeWidth={1.5}
+        />
       )}
       <p
         className={cn(
           "flex-1 min-w-0 text-sm truncate",
-          task.isDone ? "text-text-secondary line-through" : "text-text-primary",
+          task.isDone
+            ? "text-text-secondary line-through"
+            : "text-text-primary",
         )}
       >
         {task.title}
@@ -77,7 +87,9 @@ function TaskRow({
             isOverdue ? "text-danger font-medium" : "text-text-secondary",
           )}
         >
-          {isOverdue && <AlertTriangle size={10} className="inline mr-0.5 -mt-0.5" />}
+          {isOverdue && (
+            <AlertTriangle size={10} className="inline mr-0.5 -mt-0.5" />
+          )}
           {dueLabel}
         </span>
       )}
@@ -188,17 +200,6 @@ export function ProjectTaskGroup({
           )}
         </span>
         <ProgressBar done={doneCount} total={project.taskCount} />
-        {isLoggedIn && (
-          <Link
-            to="/c/$companySlug/tasks/new"
-            params={{ companySlug }}
-            onClick={(e) => e.stopPropagation()}
-            className="ml-1 p-1 rounded text-text-secondary hover:text-accent hover:bg-accent/8 transition-colors duration-150 shrink-0"
-            title="Add task"
-          >
-            <Plus size={13} />
-          </Link>
-        )}
       </button>
 
       {/* Body */}
@@ -207,8 +208,22 @@ export function ProjectTaskGroup({
           {isLoading ? (
             <TasksSkeleton />
           ) : preview.length === 0 ? (
-            <div className="border-t border-border px-4 py-5 text-center text-sm text-text-secondary">
-              No tasks match this filter.
+            <div className="border-t border-border divide-y divide-border">
+              <div className="px-4 py-5 text-center text-sm text-text-secondary">
+                No tasks match this filter.
+              </div>
+              {isLoggedIn && (
+                <Link
+                  to="/c/$companySlug/tasks/new"
+                  params={{ companySlug }}
+                  search={{ project: project.slug }}
+                  className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary
+                             hover:text-accent hover:bg-hover transition-colors duration-150"
+                >
+                  <Plus size={14} className="shrink-0" />
+                  Add task
+                </Link>
+              )}
             </div>
           ) : (
             <div className="border-t border-border divide-y divide-border">
@@ -229,6 +244,18 @@ export function ProjectTaskGroup({
                              transition-colors duration-150"
                 >
                   Show all {tasks.length} →
+                </Link>
+              )}
+              {isLoggedIn && (
+                <Link
+                  to="/c/$companySlug/tasks/new"
+                  params={{ companySlug }}
+                  search={{ project: project.slug }}
+                  className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary
+                             hover:text-accent hover:bg-hover transition-colors duration-150"
+                >
+                  <Plus size={14} className="shrink-0" />
+                  Add task
                 </Link>
               )}
             </div>
@@ -300,20 +327,11 @@ export function OrphanTaskGroup({
         />
         <span className="flex-1 min-w-0 text-left flex items-center gap-2">
           <AlertTriangle size={13} className="text-warning shrink-0" />
-          <span className="text-sm font-semibold text-warning-text">No project</span>
+          <span className="text-sm font-semibold text-warning-text">
+            No project
+          </span>
           <span className="text-xs text-warning tabular-nums">{total}</span>
         </span>
-        {isLoggedIn && (
-          <Link
-            to="/c/$companySlug/tasks/new"
-            params={{ companySlug }}
-            onClick={(e) => e.stopPropagation()}
-            className="ml-1 p-1 rounded text-warning hover:bg-warning/10 transition-colors duration-150 shrink-0"
-            title="Add task"
-          >
-            <Plus size={13} />
-          </Link>
-        )}
       </button>
 
       {open && (
@@ -321,17 +339,26 @@ export function OrphanTaskGroup({
           {isLoading ? (
             <TasksSkeleton />
           ) : preview.length === 0 ? (
-            <div className="border-t border-warning-border px-4 py-5 text-center text-sm text-warning-text">
-              No tasks match this filter.
+            <div className="border-t border-warning-border divide-y divide-warning-border">
+              <div className="px-4 py-5 text-center text-sm text-warning-text">
+                No tasks match this filter.
+              </div>
+              {isLoggedIn && (
+                <Link
+                  to="/c/$companySlug/tasks/new"
+                  params={{ companySlug }}
+                  className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary
+                             hover:text-accent hover:bg-hover transition-colors duration-150"
+                >
+                  <Plus size={14} className="shrink-0" />
+                  Add task
+                </Link>
+              )}
             </div>
           ) : (
             <div className="border-t border-warning-border divide-y divide-warning-border">
               {preview.map((task) => (
-                <TaskRow
-                  key={task.id}
-                  task={task}
-                  companySlug={companySlug}
-                />
+                <TaskRow key={task.id} task={task} companySlug={companySlug} />
               ))}
               {remaining > 0 && (
                 <Link
@@ -343,6 +370,17 @@ export function OrphanTaskGroup({
                              transition-colors duration-150"
                 >
                   Show all {tasks.length} →
+                </Link>
+              )}
+              {isLoggedIn && (
+                <Link
+                  to="/c/$companySlug/tasks/new"
+                  params={{ companySlug }}
+                  className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary
+                             hover:text-accent hover:bg-hover transition-colors duration-150"
+                >
+                  <Plus size={14} className="shrink-0" />
+                  Add task
                 </Link>
               )}
             </div>

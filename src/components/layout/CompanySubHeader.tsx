@@ -15,7 +15,8 @@ function NewActionDropdown({ companySlug }: { companySlug: string }) {
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node))
+        setOpen(false);
     }
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
@@ -89,11 +90,11 @@ export function CompanySubHeader() {
   const showBreadcrumb = !!projectSlug;
 
   return (
-    <div className="border-b border-border bg-bg/95 backdrop-blur sticky top-12 sm:top-14 z-[90]">
+    <div className="bg-bg/95 backdrop-blur sticky top-12 sm:top-14 z-[90]">
       <div className="max-w-content mx-auto px-4 sm:px-6 h-12 flex items-center justify-between gap-3">
         {/* Left: company name + tabs or breadcrumb tail */}
         <nav className="flex items-center gap-1 min-w-0 text-sm">
-          <Link
+          {/*<Link
             to="/c/$companySlug"
             params={{ companySlug: company.slug }}
             className={cn(
@@ -105,21 +106,30 @@ export function CompanySubHeader() {
             title={company.name}
           >
             {company.name}
-          </Link>
+          </Link>*/}
 
           {showBreadcrumb && (
             <>
-              <ChevronRight size={13} className="text-text-disabled shrink-0 mx-0.5" />
+              <ChevronRight
+                size={13}
+                className="text-text-disabled shrink-0 mx-0.5"
+              />
               {taskId ? (
                 <>
                   <Link
                     to="/c/$companySlug/projects/$projectSlug"
-                    params={{ companySlug: company.slug, projectSlug: projectSlug! }}
+                    params={{
+                      companySlug: company.slug,
+                      projectSlug: projectSlug!,
+                    }}
                     className="hover:text-text-primary transition-colors text-text-secondary truncate max-w-[120px] sm:max-w-[160px]"
                   >
                     {project?.name ?? projectSlug}
                   </Link>
-                  <ChevronRight size={13} className="text-text-disabled shrink-0 mx-0.5" />
+                  <ChevronRight
+                    size={13}
+                    className="text-text-disabled shrink-0 mx-0.5"
+                  />
                   <span className="text-text-primary truncate max-w-[140px] sm:max-w-[220px]">
                     {task?.title ?? "Task"}
                   </span>

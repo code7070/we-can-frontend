@@ -118,7 +118,7 @@ function ScopeSwitcher({
             "px-2 py-0.5 rounded text-xs font-medium transition-colors",
             scope === activeScope
               ? "bg-accent-subtle text-accent"
-              : "text-text-secondary hover:bg-[#f4f4f5] hover:text-text-primary"
+              : "text-text-secondary hover:bg-hover hover:text-text-primary"
           )}
         >
           {SCOPE_LABELS[scope]}
@@ -170,7 +170,7 @@ function Row({
       ref={ref}
       data-result-index={index}
       onMouseEnter={() => onHover(index)}
-      className={cn(selected && "bg-[#f4f4f5]", className)}
+      className={cn(selected && "bg-hover", className)}
     >
       {children}
     </div>

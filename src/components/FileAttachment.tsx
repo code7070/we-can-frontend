@@ -5,14 +5,14 @@ interface Props {
 }
 
 const TYPE_COLORS: Record<string, string> = {
-  PNG: "#2563EB",
+  PNG: "#3f3f46",
   PDF: "#DC2626",
   FIG: "#059669",
-  JPG: "#D97706",
-  JPEG: "#D97706",
+  JPG: "#3f3f46",
+  JPEG: "#3f3f46",
   ZIP: "#71717A",
   SVG: "#8B5CF6",
-  GIF: "#0891B2",
+  GIF: "#3f3f46",
   DOC: "#6366F1",
   DOCX: "#6366F1",
   XLS: "#059669",
@@ -39,7 +39,7 @@ export function FileAttachment({ attachment }: Props) {
       href={attachment.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex items-center gap-2.5 px-3 py-2 rounded-lg border border-border bg-surface hover:bg-[#F4F4F5] transition-colors duration-150 text-sm text-text-primary max-w-sm group"
+      className="inline-flex items-center gap-2.5 px-3 py-2 rounded-lg border border-border bg-surface hover:bg-hover transition-colors duration-150 text-sm text-text-primary max-w-sm group"
     >
       <span
         className="w-9 h-9 rounded-md flex items-center justify-center text-[10px] font-bold text-white shrink-0"

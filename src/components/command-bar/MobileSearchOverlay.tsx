@@ -93,7 +93,7 @@ export function MobileSearchOverlay({ onClose }: Props) {
       <div className="flex items-center gap-3 px-4 h-14 border-b border-border shrink-0">
         <button
           onClick={onClose}
-          className="flex items-center justify-center w-8 h-8 rounded-md text-text-secondary hover:text-text-primary hover:bg-[#F4F4F5] transition-colors -ml-1"
+          className="flex items-center justify-center w-8 h-8 rounded-md text-text-secondary hover:text-text-primary hover:bg-hover transition-colors -ml-1"
           aria-label="Close search"
         >
           <ArrowLeft size={18} />

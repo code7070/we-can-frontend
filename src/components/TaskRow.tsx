@@ -81,7 +81,7 @@ export function TaskRow({ task, projectSlug }: Props) {
       <div
         className={cn(
           "px-4 py-2.5 transition-colors duration-150 group",
-          isExpanded ? "bg-[#F4F4F5]" : "hover:bg-[#F4F4F5]"
+          isExpanded ? "bg-hover" : "hover:bg-hover"
         )}
       >
         <div className="flex items-start sm:items-center gap-3">
@@ -138,7 +138,7 @@ export function TaskRow({ task, projectSlug }: Props) {
 
       {/* ── Expanded Section (Variant B — Conversational) ── */}
       {isExpanded && (
-        <div className="border-t border-border bg-[#FAFAFA]">
+        <div className="border-t border-border bg-soft">
           <div className="flex gap-3 px-4 py-3">
             {/* Spacer matches checkbox + gap so content aligns with title */}
             <div className="w-5 shrink-0" />
@@ -157,9 +157,9 @@ export function TaskRow({ task, projectSlug }: Props) {
                     <span
                       className={cn(
                         "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium",
-                        dueChip.tone === "danger" && "bg-[#FEE2E2] text-[#DC2626]",
-                        dueChip.tone === "warn" && "bg-[#FEF3C7] text-[#D97706]",
-                        dueChip.tone === "muted" && "bg-[#F4F4F5] text-text-secondary"
+                        dueChip.tone === "danger" && "bg-danger-bg text-danger",
+                        dueChip.tone === "warn" && "bg-warning-bg text-warning",
+                        dueChip.tone === "muted" && "bg-hover text-text-secondary"
                       )}
                     >
                       <Clock size={11} strokeWidth={2} />
@@ -167,13 +167,13 @@ export function TaskRow({ task, projectSlug }: Props) {
                     </span>
                   )}
                   {linkedCount > 0 && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-[#F4F4F5] text-text-secondary">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-hover text-text-secondary">
                       <CornerUpRight size={11} strokeWidth={2} />
                       {linkedCount} linked
                     </span>
                   )}
                   {commentCount > 0 && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-[#F4F4F5] text-text-secondary">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-hover text-text-secondary">
                       <MessageSquareText size={11} strokeWidth={2} />
                       {commentCount} comment{commentCount > 1 ? "s" : ""}
                     </span>
@@ -184,16 +184,16 @@ export function TaskRow({ task, projectSlug }: Props) {
               {/* Description block */}
               {taskDetailQuery.isLoading ? (
                 <div className="space-y-1.5">
-                  <div className="h-2.5 w-16 bg-[#F4F4F5] rounded animate-pulse" />
-                  <div className="h-3 w-full bg-[#F4F4F5] rounded animate-pulse" />
-                  <div className="h-3 w-2/3 bg-[#F4F4F5] rounded animate-pulse" />
+                  <div className="h-2.5 w-16 bg-hover rounded animate-pulse" />
+                  <div className="h-3 w-full bg-hover rounded animate-pulse" />
+                  <div className="h-3 w-2/3 bg-hover rounded animate-pulse" />
                 </div>
               ) : detail?.description ? (
                 <div className="space-y-1">
                   <p className="text-[10px] font-bold tracking-wider text-text-disabled uppercase">
                     Description
                   </p>
-                  <div className="line-clamp-2 text-sm text-[#3F3F46]">
+                  <div className="line-clamp-2 text-sm text-text-label">
                     <MarkdownRenderer content={detail.description} />
                   </div>
                 </div>
@@ -201,14 +201,14 @@ export function TaskRow({ task, projectSlug }: Props) {
 
               {/* Divider */}
               {(detail?.description || taskDetailQuery.isLoading) && (
-                <div className="h-px bg-[#F4F4F5]" />
+                <div className="h-px bg-hover" />
               )}
 
               {/* Comment bubble */}
               {taskDetailQuery.isLoading ? (
                 <div className="rounded-lg border border-border bg-white p-3 space-y-1.5">
-                  <div className="h-3 w-32 bg-[#F4F4F5] rounded animate-pulse" />
-                  <div className="h-3 w-full bg-[#F4F4F5] rounded animate-pulse" />
+                  <div className="h-3 w-32 bg-hover rounded animate-pulse" />
+                  <div className="h-3 w-full bg-hover rounded animate-pulse" />
                 </div>
               ) : lastComment ? (
                 <div className="rounded-lg border border-border bg-white p-3">

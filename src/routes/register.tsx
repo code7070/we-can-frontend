@@ -180,8 +180,8 @@ function RegisterPage() {
                       "flex flex-col items-start px-3 py-2.5 rounded-lg border text-left",
                       "transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent",
                       selected
-                        ? "border-accent bg-[#EFF6FF] text-accent"
-                        : "border-border bg-surface text-text-primary hover:bg-[#F4F4F5]"
+                        ? "border-accent bg-accent-subtle text-accent"
+                        : "border-border bg-surface text-text-primary hover:bg-hover"
                     )}
                   >
                     <span className="text-[11px] font-semibold uppercase tracking-wider leading-none mb-0.5 opacity-60">

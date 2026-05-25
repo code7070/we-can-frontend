@@ -148,8 +148,8 @@ export function CommandBar({ className }: CommandBarProps) {
           "flex items-center gap-1.5 h-8 pl-2.5 pr-2 border rounded-lg transition-all cursor-text",
           "bg-bg",
           focused
-            ? "border-accent shadow-[0_0_0_2px_rgba(37,99,235,0.12)]"
-            : "border-border hover:border-[#d4d4d8]"
+            ? "border-accent shadow-[0_0_0_2px_var(--tf-focus-ring)]"
+            : "border-border hover:border-border-strong"
         )}
         onClick={() => inputRef.current?.focus()}
       >
@@ -186,10 +186,10 @@ export function CommandBar({ className }: CommandBarProps) {
 
         {showKbdHint && (
           <div className="flex items-center gap-px shrink-0 pointer-events-none">
-            <kbd className="flex items-center justify-center h-4 w-4 text-[10px] text-text-disabled bg-[#f4f4f5] border border-border rounded font-mono leading-none">
+            <kbd className="flex items-center justify-center h-4 w-4 text-[10px] text-text-disabled bg-hover border border-border rounded font-mono leading-none">
               ⌘
             </kbd>
-            <kbd className="flex items-center justify-center h-4 w-4 text-[10px] text-text-disabled bg-[#f4f4f5] border border-border rounded font-mono leading-none">
+            <kbd className="flex items-center justify-center h-4 w-4 text-[10px] text-text-disabled bg-hover border border-border rounded font-mono leading-none">
               K
             </kbd>
           </div>

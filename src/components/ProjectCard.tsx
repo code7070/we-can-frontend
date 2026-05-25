@@ -13,11 +13,11 @@ function ProgressBar({ value, total }: { value: number; total: number }) {
 
   return (
     <div className="space-y-1.5">
-      <div className="h-1.5 rounded-full bg-[#F4F4F5] overflow-hidden">
+      <div className="h-1.5 rounded-full bg-hover overflow-hidden">
         <div
           className={cn(
             "h-full rounded-full transition-all duration-300",
-            complete ? "bg-[#16A34A]" : "bg-accent"
+            complete ? "bg-success" : "bg-accent"
           )}
           style={{ width: `${pct}%` }}
         />
@@ -26,7 +26,7 @@ function ProgressBar({ value, total }: { value: number; total: number }) {
         {total === 0 ? (
           "No tasks yet"
         ) : complete ? (
-          <span className="text-[#16A34A] font-medium">All {total} tasks done</span>
+          <span className="text-success font-medium">All {total} tasks done</span>
         ) : (
           <>{value} of {total} tasks done</>
         )}
@@ -67,12 +67,12 @@ export function ProjectCardSkeleton() {
   return (
     <div className="flex flex-col gap-3 p-5 rounded-xl border border-border bg-surface">
       <div className="space-y-1.5">
-        <div className="h-4 w-2/3 rounded bg-[#F4F4F5] animate-pulse" />
-        <div className="h-3 w-full rounded bg-[#F4F4F5] animate-pulse" />
+        <div className="h-4 w-2/3 rounded bg-hover animate-pulse" />
+        <div className="h-3 w-full rounded bg-hover animate-pulse" />
       </div>
       <div className="space-y-1.5">
-        <div className="h-1.5 rounded-full bg-[#F4F4F5] animate-pulse" />
-        <div className="h-3 w-24 rounded bg-[#F4F4F5] animate-pulse" />
+        <div className="h-1.5 rounded-full bg-hover animate-pulse" />
+        <div className="h-3 w-24 rounded bg-hover animate-pulse" />
       </div>
     </div>
   );

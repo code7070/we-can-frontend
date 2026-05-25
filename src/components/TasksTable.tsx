@@ -96,7 +96,7 @@ function ProjectCell({ task }: { task: TaskListItem }) {
     <Link
       to="/c/$companySlug/projects/$projectSlug"
       params={{ companySlug: company.slug, projectSlug: task.project.slug }}
-      className="inline-flex items-center px-2 py-0.5 rounded-md bg-[#EFF6FF] text-xs font-medium text-accent hover:bg-accent/20 transition-colors duration-150 max-w-[160px] truncate"
+      className="inline-flex items-center px-2 py-0.5 rounded-md bg-accent-subtle text-xs font-medium text-accent hover:bg-accent/20 transition-colors duration-150 max-w-[160px] truncate"
     >
       {task.project.name}
     </Link>
@@ -130,8 +130,8 @@ function DueDateCell({ task }: { task: TaskListItem }) {
     <span
       className={cn(
         "inline-flex items-center gap-1 text-xs font-medium whitespace-nowrap",
-        tone === "danger" && "text-[#DC2626]",
-        tone === "warn" && "text-[#D97706]",
+        tone === "danger" && "text-danger",
+        tone === "warn" && "text-warning",
         tone === "muted" && "text-text-secondary"
       )}
     >
@@ -239,7 +239,7 @@ export function TasksTable({ tasks, emptyMessage = "No tasks found.", emptyActio
         {table.getRowModel().rows.map((row) => (
           <div
             key={row.id}
-            className="flex items-center px-4 py-2.5 gap-3 min-h-[44px] border-b border-border last:border-b-0 hover:bg-[#F4F4F5] transition-colors duration-150 group/row"
+            className="flex items-center px-4 py-2.5 gap-3 min-h-[44px] border-b border-border last:border-b-0 hover:bg-hover transition-colors duration-150 group/row"
           >
             {row.getVisibleCells().map((cell) => (
               <div
@@ -271,7 +271,7 @@ export function TasksTable({ tasks, emptyMessage = "No tasks found.", emptyActio
           return (
             <div
               key={t.id}
-              className="bg-surface border border-border rounded-xl p-3 space-y-2.5 transition-colors duration-150 active:bg-[#F4F4F5]"
+              className="bg-surface border border-border rounded-xl p-3 space-y-2.5 transition-colors duration-150 active:bg-hover"
             >
               {/* Top row: checkbox + title */}
               <div className="flex items-start gap-2.5">
@@ -289,9 +289,9 @@ export function TasksTable({ tasks, emptyMessage = "No tasks found.", emptyActio
                   <span
                     className={cn(
                       "inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium whitespace-nowrap",
-                      dueLabel.tone === "danger" && "bg-[#FEE2E2] text-[#DC2626]",
-                      dueLabel.tone === "warn" && "bg-[#FEF3C7] text-[#D97706]",
-                      dueLabel.tone === "muted" && "bg-[#F4F4F5] text-text-secondary"
+                      dueLabel.tone === "danger" && "bg-danger-bg text-danger",
+                      dueLabel.tone === "warn" && "bg-warning-bg text-warning",
+                      dueLabel.tone === "muted" && "bg-hover text-text-secondary"
                     )}
                   >
                     <Clock size={10} strokeWidth={2} />
@@ -300,7 +300,7 @@ export function TasksTable({ tasks, emptyMessage = "No tasks found.", emptyActio
                 )}
 
                 {t.commentCount > 0 && (
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium bg-[#F4F4F5] text-text-secondary whitespace-nowrap">
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium bg-hover text-text-secondary whitespace-nowrap">
                     <MessageSquareText size={10} strokeWidth={2} />
                     {t.commentCount}
                   </span>

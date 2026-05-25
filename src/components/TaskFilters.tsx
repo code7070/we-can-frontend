@@ -1,12 +1,18 @@
 import { cn } from "@/lib/utils";
 
-export type TaskFilter = "all" | "my" | "unassigned" | "no-project";
+export type TaskFilter =
+  | "all"
+  | "my"
+  | "unassigned"
+  | "no-project"
+  | "closed-120d";
 
 const ALL_FILTERS: { id: TaskFilter; label: string; requiresAuth: boolean }[] = [
   { id: "all", label: "All", requiresAuth: false },
   { id: "my", label: "My Tasks", requiresAuth: true },
   { id: "unassigned", label: "Unassigned", requiresAuth: false },
   { id: "no-project", label: "No Project", requiresAuth: false },
+  { id: "closed-120d", label: "Closed (120d)", requiresAuth: false },
 ];
 
 interface Props {
@@ -28,7 +34,7 @@ export function TaskFilters({ value, onChange, isLoggedIn }: Props) {
             "px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-150",
             value === id
               ? "bg-accent/10 text-accent"
-              : "text-text-secondary hover:text-text-primary hover:bg-[#F4F4F5]"
+              : "text-text-secondary hover:text-text-primary hover:bg-hover"
           )}
         >
           {label}

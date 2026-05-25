@@ -9,21 +9,8 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* TaskFlow design tokens */
+/* TaskFlow design tokens — non-color tokens are static */
 @theme {
-  --color-bg: #fafafa;
-  --color-surface: #ffffff;
-  --color-border: #e4e4e7;
-  --color-text-primary: #18181b;
-  --color-text-secondary: #71717a;
-  --color-text-disabled: #a1a1aa;
-  --color-accent: #2563eb;
-  --color-accent-subtle: #eff6ff;
-  --color-accent-text: #1d4ed8;
-  --color-success: #16a34a;
-  --color-warning: #d97706;
-  --color-danger: #dc2626;
-
   --font-family-sans: "Plus Jakarta Sans", sans-serif;
 
   --font-size-xs: 11px;
@@ -40,11 +27,36 @@
   --transition-duration-DEFAULT: 150ms;
 }
 
-/* shadcn token bridge — overrides default shadcn palette with TaskFlow tokens */
+/* shadcn token bridge + TaskFlow color tokens — all dynamic via CSS vars */
 @theme inline {
   --font-sans: "Plus Jakarta Sans", sans-serif;
   --font-heading: "Plus Jakarta Sans", sans-serif;
 
+  /* TaskFlow custom color tokens */
+  --color-bg: var(--tf-bg);
+  --color-surface: var(--tf-surface);
+  --color-text-primary: var(--tf-text-primary);
+  --color-text-secondary: var(--tf-text-secondary);
+  --color-text-disabled: var(--tf-text-disabled);
+  --color-text-label: var(--tf-text-label);
+  --color-accent-subtle: var(--tf-accent-subtle);
+  --color-accent-text: var(--tf-accent-text);
+  --color-accent-hover: var(--tf-accent-hover);
+  --color-accent-border: var(--tf-accent-border);
+  --color-success: var(--tf-success);
+  --color-warning: var(--tf-warning);
+  --color-warning-text: var(--tf-warning-text-strong);
+  --color-warning-bg: var(--tf-warning-bg);
+  --color-warning-bg-soft: var(--tf-warning-bg-soft);
+  --color-warning-border: var(--tf-warning-border);
+  --color-danger: var(--tf-danger);
+  --color-danger-bg: var(--tf-danger-bg);
+  --color-danger-bg-soft: var(--tf-danger-bg-soft);
+  --color-hover: var(--tf-hover);
+  --color-soft: var(--tf-soft);
+  --color-border-strong: var(--tf-border-strong);
+
+  /* shadcn bridge */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -71,6 +83,31 @@
 }
 
 :root {
+  /* TaskFlow semantic color tokens */
+  --tf-bg: #fafafa;
+  --tf-surface: #ffffff;
+  --tf-text-primary: #18181b;
+  --tf-text-secondary: #71717a;
+  --tf-text-disabled: #a1a1aa;
+  --tf-text-label: #3f3f46;
+  --tf-accent-subtle: #f4f4f5;
+  --tf-accent-text: #27272a;
+  --tf-accent-hover: #e4e4e7;
+  --tf-accent-border: #d4d4d8;
+  --tf-success: #16a34a;
+  --tf-warning: #d97706;
+  --tf-warning-text-strong: #92400e;
+  --tf-warning-bg: #fef3c7;
+  --tf-warning-bg-soft: #fffbeb;
+  --tf-warning-border: #fde68a;
+  --tf-danger: #dc2626;
+  --tf-danger-bg: #fee2e2;
+  --tf-danger-bg-soft: #fef2f2;
+  --tf-hover: #f4f4f5;
+  --tf-soft: #fafafa;
+  --tf-border-strong: #d4d4d8;
+  --tf-focus-ring: rgba(0, 0, 0, 0.1);
+
   /* shadcn slots mapped to TaskFlow colors */
   --background: #fafafa;
   --foreground: #18181b;
@@ -78,19 +115,66 @@
   --card-foreground: #18181b;
   --popover: #ffffff;
   --popover-foreground: #18181b;
-  --primary: #2563eb;
+  --primary: #18181b;
   --primary-foreground: #ffffff;
   --secondary: #f4f4f5;
   --secondary-foreground: #18181b;
   --muted: #f4f4f5;
   --muted-foreground: #71717a;
-  --accent: #2563eb;
+  --accent: #18181b;
   --accent-foreground: #ffffff;
   --destructive: #dc2626;
   --border: #e4e4e7;
   --input: #e4e4e7;
-  --ring: #2563eb;
+  --ring: #18181b;
   --radius: 0.5rem;
+}
+
+.dark {
+  /* TaskFlow dark tokens */
+  --tf-bg: #111113;
+  --tf-surface: #18181b;
+  --tf-text-primary: #fafafa;
+  --tf-text-secondary: #a1a1aa;
+  --tf-text-disabled: #71717a;
+  --tf-text-label: #d4d4d8;
+  --tf-accent-subtle: #27272a;
+  --tf-accent-text: #e4e4e7;
+  --tf-accent-hover: #3f3f46;
+  --tf-accent-border: #52525b;
+  --tf-success: #22c55e;
+  --tf-warning: #f59e0b;
+  --tf-warning-text-strong: #fbbf24;
+  --tf-warning-bg: #3a2906;
+  --tf-warning-bg-soft: #2a1f06;
+  --tf-warning-border: #854d0e;
+  --tf-danger: #f87171;
+  --tf-danger-bg: #3f1010;
+  --tf-danger-bg-soft: #2a0808;
+  --tf-hover: #27272a;
+  --tf-soft: #0d0d0f;
+  --tf-border-strong: #3f3f46;
+  --tf-focus-ring: rgba(255, 255, 255, 0.15);
+
+  /* shadcn dark slots */
+  --background: #111113;
+  --foreground: #fafafa;
+  --card: #18181b;
+  --card-foreground: #fafafa;
+  --popover: #18181b;
+  --popover-foreground: #fafafa;
+  --primary: #f4f4f5;
+  --primary-foreground: #18181b;
+  --secondary: #27272a;
+  --secondary-foreground: #fafafa;
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+  --accent: #f4f4f5;
+  --accent-foreground: #18181b;
+  --destructive: #f87171;
+  --border: #27272a;
+  --input: #27272a;
+  --ring: #e4e4e7;
 }
 
 @layer base {
@@ -125,36 +209,57 @@
     font-weight: 700;
     margin: 20px 0 10px;
     line-height: 1.35;
-    color: #18181B;
+    color: var(--tf-text-primary);
   }
   .markdown-content h2 {
     font-size: 18px;
     font-weight: 600;
     margin: 16px 0 8px;
     line-height: 1.4;
-    color: #18181B;
+    color: var(--tf-text-primary);
   }
   .markdown-content h3 {
     font-size: 16px;
     font-weight: 600;
     margin: 12px 0 6px;
     line-height: 1.4;
-    color: #18181B;
+    color: var(--tf-text-primary);
   }
   .markdown-content ul,
   .markdown-content ol {
     padding-left: 24px;
     margin: 8px 0;
   }
+  .markdown-content ul {
+    list-style-type: disc;
+  }
+  .markdown-content ol {
+    list-style-type: decimal;
+  }
   .markdown-content li {
     margin: 4px 0;
   }
+
+  /* Restore list markers inside the MDXEditor content area (Tailwind resets list-style: none) */
+  .wecan-editor-content ul {
+    list-style-type: disc;
+    padding-left: 24px;
+    margin: 8px 0;
+  }
+  .wecan-editor-content ol {
+    list-style-type: decimal;
+    padding-left: 24px;
+    margin: 8px 0;
+  }
+  .wecan-editor-content li {
+    margin: 4px 0;
+  }
   .markdown-content blockquote {
-    border-left: 3px solid #2563EB;
+    border-left: 3px solid var(--accent);
     padding: 8px 16px;
     margin: 12px 0;
-    background: #FAFAFA;
-    color: #3F3F46;
+    background: var(--tf-soft);
+    color: var(--tf-text-label);
     font-style: italic;
     border-radius: 0 4px 4px 0;
   }
@@ -175,7 +280,7 @@
     font-family: 'SF Mono', 'Fira Code', monospace;
     font-size: 0.875em;
     background: #F4F4F5;
-    color: #18181B;
+    color: var(--tf-text-primary);
     padding: 1px 4px;
     border-radius: 4px;
   }
@@ -250,7 +355,7 @@
     border: none;
   }
   .markdown-content a {
-    color: #1D4ED8;
+    color: var(--tf-accent-text);
     text-decoration: underline;
     overflow-wrap: break-word;
   }
@@ -260,7 +365,7 @@
   }
   .markdown-content hr {
     border: none;
-    border-top: 1px solid #E4E4E7;
+    border-top: 1px solid var(--border);
     margin: 16px 0;
   }
   .markdown-content table {
@@ -276,7 +381,21 @@
     text-align: left;
   }
   .markdown-content th {
-    background: #FAFAFA;
+    background: var(--tf-soft);
     font-weight: 600;
+  }
+
+  /* Dark mode overrides for markdown content (only the values that don't already use CSS vars in the light styles) */
+  .dark .markdown-content :not(pre) > code {
+    background: var(--tf-hover);
+    color: var(--tf-text-primary);
+  }
+  .dark .markdown-content hr,
+  .dark .markdown-content th,
+  .dark .markdown-content td {
+    border-color: var(--border);
+  }
+  .dark .markdown-content th {
+    background: var(--tf-surface);
   }
 }

@@ -90,7 +90,7 @@ function InsertMediaButton({ onClick }: { onClick: () => void }) {
       type="button"
       title="Insert image or media"
       onClick={onClick}
-      className="inline-flex items-center justify-center w-7 h-7 rounded text-text-secondary hover:bg-[#F4F4F5] hover:text-text-primary transition-colors duration-150"
+      className="inline-flex items-center justify-center w-7 h-7 rounded text-text-secondary hover:bg-hover hover:text-text-primary transition-colors duration-150"
     >
       <ImageIcon size={16} />
     </button>
@@ -134,7 +134,7 @@ function EditorErrorFallback({
       <button
         type="button"
         onClick={onRetry}
-        className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-accent-solid-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+        className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground transition-colors hover:bg-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
       >
         Retry
       </button>

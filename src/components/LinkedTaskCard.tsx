@@ -32,7 +32,7 @@ export function LinkedTaskCard({ task }: Props) {
       <Link
         to="/c/$companySlug/projects/$projectSlug/tasks/$taskId"
         params={{ companySlug: company.slug, projectSlug: task.project.slug, taskId: task.id }}
-        className="block border-l-[3px] border-accent pl-3 py-2.5 bg-surface border border-border rounded-r-lg hover:bg-[#F4F4F5] transition-colors duration-150"
+        className="block border-l-[3px] border-accent pl-3 py-2.5 bg-surface border border-border rounded-r-lg hover:bg-hover transition-colors duration-150"
       >
         <div className="flex items-center gap-2.5">
           {task.isDone ? (

@@ -85,7 +85,7 @@ function TaskGroupRow({
           "flex-1 h-10 px-3 rounded-lg bg-surface text-sm text-text-primary",
           "border-[1.5px] outline-none transition-all duration-150 font-sans",
           focused
-            ? "border-accent [box-shadow:0_0_0_3px_rgba(37,99,235,0.12)]"
+            ? "border-accent [box-shadow:0_0_0_3px_var(--tf-focus-ring)]"
             : "border-border"
         )}
       />
@@ -120,7 +120,7 @@ function MemberChip({
     <div
       className={cn(
         "inline-flex items-center gap-1.5 pl-1 pr-2 py-1 rounded-full transition-all duration-150",
-        hovered ? "bg-accent-subtle border border-[#BFDBFE]" : "bg-[#F4F4F5] border border-transparent"
+        hovered ? "bg-accent-subtle border border-accent-border" : "bg-hover border border-transparent"
       )}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -131,7 +131,7 @@ function MemberChip({
         onClick={onRemove}
         className={cn(
           "w-4 h-4 rounded-full flex items-center justify-center transition-all duration-150 ml-0.5",
-          hovered ? "bg-[#DBEAFE] text-text-secondary" : "bg-border text-text-secondary"
+          hovered ? "bg-accent-hover text-text-secondary" : "bg-border text-text-secondary"
         )}
       >
         <X size={8} />
@@ -181,7 +181,7 @@ function MemberPicker({
       <button
         onClick={() => setOpen(!open)}
         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium
-                   text-text-secondary hover:bg-[#F4F4F5] transition-colors duration-150"
+                   text-text-secondary hover:bg-hover transition-colors duration-150"
       >
         <Plus size={13} />
         Add member
@@ -191,7 +191,7 @@ function MemberPicker({
         <div className="absolute top-full left-0 mt-1 w-72 bg-surface border border-border
                         rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.06)]
                         z-50 overflow-hidden">
-          <div className="p-2 border-b border-[#F4F4F5]">
+          <div className="p-2 border-b border-hover">
             <input
               autoFocus
               placeholder="Search members..."
@@ -207,7 +207,7 @@ function MemberPicker({
                 key={m.id}
                 onClick={() => onToggle(m.id)}
                 className="flex items-center gap-2.5 px-3 py-2 cursor-pointer
-                           hover:bg-[#F4F4F5] transition-colors duration-150"
+                           hover:bg-hover transition-colors duration-150"
               >
                 <Avatar name={m.name} initials={m.initials} size={28} />
                 <div className="flex-1 min-w-0">
@@ -372,7 +372,7 @@ function CreateProjectPage() {
             <button
               onClick={addGroup}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm
-                         font-medium text-text-secondary hover:bg-[#F4F4F5] transition-colors duration-150"
+                         font-medium text-text-secondary hover:bg-hover transition-colors duration-150"
             >
               <Plus size={13} />
               Add group
@@ -396,7 +396,7 @@ function CreateProjectPage() {
           <Link
             to="/"
             className="px-4 py-2 rounded-lg text-sm font-semibold text-text-secondary
-                       hover:bg-[#F4F4F5] transition-colors duration-150"
+                       hover:bg-hover transition-colors duration-150"
           >
             Cancel
           </Link>
@@ -407,7 +407,7 @@ function CreateProjectPage() {
               "inline-flex items-center gap-1.5 px-6 py-2.5 rounded-lg text-sm font-semibold",
               "transition-all duration-150",
               canSubmit
-                ? "bg-accent hover:bg-accent-text text-white cursor-pointer"
+                ? "bg-accent hover:bg-accent-text text-accent-foreground cursor-pointer"
                 : "bg-border text-text-disabled cursor-not-allowed"
             )}
           >

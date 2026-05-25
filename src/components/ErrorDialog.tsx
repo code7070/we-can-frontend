@@ -28,7 +28,7 @@ export function ErrorDialog() {
         <DialogPrimitive.Popup className="fixed top-1/2 left-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white ring-1 ring-black/8 shadow-lg outline-none">
           <div className="p-5">
             <div className="flex items-start gap-3 mb-4">
-              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FEF2F2]">
+              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-danger-bg-soft">
                 <AlertTriangle size={16} className="text-danger" />
               </div>
               <div className="min-w-0">

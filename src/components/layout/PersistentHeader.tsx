@@ -1,11 +1,12 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useState, useRef, useEffect } from "react";
-import { ChevronDown, Settings, Users, LogOut, BookOpen, Plus, Search } from "lucide-react";
+import { ChevronDown, Settings, Users, LogOut, BookOpen, Search, Sun, Moon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
-import { NavTabs } from "./NavTabs";
+import { useTheme } from "@/context/theme-context";
 import { MobileSearchOverlay } from "@/components/command-bar/MobileSearchOverlay";
 import { companyQueryOptions } from "@/api/companies";
+import { cn } from "@/lib/utils";
 
 function UserMenu({ onLogout }: { onLogout: () => void }) {
   const [open, setOpen] = useState(false);
@@ -33,7 +34,7 @@ function UserMenu({ onLogout }: { onLogout: () => void }) {
           <Link
             to="/users"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-2.5 px-3 py-2 text-sm text-text-primary hover:bg-[#f4f4f5] transition-colors"
+            className="flex items-center gap-2.5 px-3 py-2 text-sm text-text-primary hover:bg-hover transition-colors"
           >
             <Users size={14} className="text-text-secondary" />
             Users
@@ -41,7 +42,7 @@ function UserMenu({ onLogout }: { onLogout: () => void }) {
           <Link
             to="/settings"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-2.5 px-3 py-2 text-sm text-text-primary hover:bg-[#f4f4f5] transition-colors"
+            className="flex items-center gap-2.5 px-3 py-2 text-sm text-text-primary hover:bg-hover transition-colors"
           >
             <Settings size={14} className="text-text-secondary" />
             Settings
@@ -49,7 +50,7 @@ function UserMenu({ onLogout }: { onLogout: () => void }) {
           <Link
             to="/documentation"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-2.5 px-3 py-2 text-sm text-text-primary hover:bg-[#f4f4f5] transition-colors"
+            className="flex items-center gap-2.5 px-3 py-2 text-sm text-text-primary hover:bg-hover transition-colors"
           >
             <BookOpen size={14} className="text-text-secondary" />
             API Docs
@@ -57,7 +58,7 @@ function UserMenu({ onLogout }: { onLogout: () => void }) {
           <div className="border-t border-border my-1" />
           <button
             onClick={() => { setOpen(false); onLogout(); }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-text-primary hover:bg-[#f4f4f5] transition-colors"
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-text-primary hover:bg-hover transition-colors"
           >
             <LogOut size={14} className="text-text-secondary" />
             Sign out
@@ -71,6 +72,7 @@ function UserMenu({ onLogout }: { onLogout: () => void }) {
 export function PersistentHeader() {
   const navigate = useNavigate();
   const { isLoggedIn, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const matches = useRouterState({ select: (s) => s.matches });
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
@@ -85,6 +87,10 @@ export function PersistentHeader() {
     ? (companyMatch.params as { companySlug: string }).companySlug
     : null;
 
+  const showBreadcrumb = matches.some(
+    (m) => "projectSlug" in (m.params as Record<string, string>)
+  );
+
   const { data: company } = useQuery({
     ...companyQueryOptions(companySlug!),
     enabled: !!companySlug,
@@ -98,59 +104,52 @@ export function PersistentHeader() {
   return (
     <header className="sticky top-0 z-[130] border-b border-border bg-surface/95 backdrop-blur">
       <div className="max-w-content mx-auto px-4 sm:px-6 h-12 sm:h-14 flex items-center gap-2 sm:gap-4">
-        {/* Logo */}
-        <Link
-          to="/"
-          className="text-sm font-semibold text-text-primary hover:text-accent transition-colors shrink-0"
-        >
-          WeCan
-        </Link>
-
-        {/* Company name label */}
-        {company && (
-          <span
-            className="text-sm text-text-secondary hidden sm:inline"
-            title={company.slug}
+        {/* Logo / company name — links back to company when in context, else to picker */}
+        {company && companySlug ? (
+          <Link
+            to="/c/$companySlug"
+            params={{ companySlug }}
+            className={cn(
+              "text-sm font-semibold transition-colors truncate shrink-0 max-w-[160px] sm:max-w-[220px]",
+              showBreadcrumb
+                ? "text-text-secondary hover:text-text-primary"
+                : "text-text-primary",
+            )}
+            title={company.name}
           >
             {company.name}
-          </span>
-        )}
-
-        {/* Nav tabs — desktop only, inside company routes only */}
-        {!isAuthPage && company && (
-          <>
-            <div className="w-px h-4 bg-border shrink-0 hidden lg:block" />
-            <div className="hidden lg:block">
-              <NavTabs companySlug={company.slug} />
-            </div>
-          </>
+          </Link>
+        ) : (
+          <Link
+            to="/"
+            className="text-sm font-semibold text-text-primary hover:text-accent transition-colors shrink-0"
+          >
+            WeCan
+          </Link>
         )}
 
         <div className="flex-1" />
 
+        {/* Theme toggle */}
+        <button
+          onClick={toggleTheme}
+          className="flex items-center justify-center w-8 h-8 rounded-md text-text-secondary hover:text-text-primary hover:bg-hover transition-colors"
+          aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+        >
+          {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+        </button>
+
         {/* Right side actions */}
         <div className="flex items-center gap-1 sm:gap-3 shrink-0">
-          {/* Mobile search trigger — only inside a company */}
+          {/* Mobile search trigger — only inside a company; desktop search lives in CompanySubHeader */}
           {!isAuthPage && company && (
             <button
               onClick={() => setMobileSearchOpen(true)}
-              className="flex lg:hidden items-center justify-center w-8 h-8 rounded-md text-text-secondary hover:text-text-primary hover:bg-[#F4F4F5] transition-colors"
+              className="flex lg:hidden items-center justify-center w-8 h-8 rounded-md text-text-secondary hover:text-text-primary hover:bg-hover transition-colors"
               aria-label="Search"
             >
               <Search size={16} />
             </button>
-          )}
-
-          {/* Desktop "New" button — only inside company */}
-          {isLoggedIn && !isAuthPage && company && (
-            <Link
-              to="/c/$companySlug/projects/new"
-              params={{ companySlug: company.slug }}
-              className="hidden sm:inline-flex items-center gap-1.5 text-sm font-medium text-surface bg-accent hover:bg-accent-text px-3 py-1.5 rounded-md transition-colors"
-            >
-              <Plus size={14} />
-              New
-            </Link>
           )}
 
           {isLoggedIn ? (

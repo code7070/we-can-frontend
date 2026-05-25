@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { z } from "zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -25,6 +26,9 @@ import { cn } from "@/lib/utils";
 import type { User } from "@/api/types";
 
 export const Route = createFileRoute("/c/$companySlug/tasks/new")({
+  validateSearch: z.object({
+    project: z.string().optional(),
+  }),
   component: CreateStandaloneTaskPage,
 });
 
@@ -96,7 +100,7 @@ function ProjectSelect({
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center gap-1.5">
-        <label className="text-sm font-medium text-[#3F3F46]">Project</label>
+        <label className="text-sm font-medium text-text-label">Project</label>
         <span className="text-xs text-text-disabled">Optional</span>
       </div>
       <div ref={ref} className="relative">
@@ -105,7 +109,7 @@ function ProjectSelect({
           className={cn(
             "flex items-center gap-2.5 h-11 px-4 border-[1.5px] rounded-lg bg-surface cursor-pointer transition-all duration-150",
             open
-              ? "border-accent [box-shadow:0_0_0_3px_rgba(37,99,235,0.12)]"
+              ? "border-accent [box-shadow:0_0_0_3px_var(--tf-focus-ring)]"
               : "border-border"
           )}
         >
@@ -138,7 +142,7 @@ function ProjectSelect({
               onClick={() => { onChange(null); setOpen(false); }}
               className={cn(
                 "px-3.5 py-2.5 text-sm cursor-pointer transition-colors duration-100 flex items-center justify-between",
-                !value ? "font-medium text-text-primary bg-[#F4F4F5]" : "text-text-secondary hover:bg-[#F4F4F5]"
+                !value ? "font-medium text-text-primary bg-hover" : "text-text-secondary hover:bg-hover"
               )}
             >
               No project
@@ -152,8 +156,8 @@ function ProjectSelect({
                 className={cn(
                   "px-3.5 py-2.5 text-sm cursor-pointer transition-colors duration-100 flex items-center justify-between",
                   p.slug === value
-                    ? "font-medium text-text-primary bg-[#F4F4F5]"
-                    : "text-text-primary hover:bg-[#F4F4F5]"
+                    ? "font-medium text-text-primary bg-hover"
+                    : "text-text-primary hover:bg-hover"
                 )}
               >
                 <span className="truncate">{p.name}</span>
@@ -201,7 +205,7 @@ function GroupSelect({
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center gap-1.5">
-        <label className="text-sm font-medium text-[#3F3F46]">Group</label>
+        <label className="text-sm font-medium text-text-label">Group</label>
         <span className="text-xs text-text-disabled">Optional</span>
       </div>
       <div ref={ref} className="relative">
@@ -211,7 +215,7 @@ function GroupSelect({
             "flex items-center gap-2.5 h-11 px-4 border-[1.5px] rounded-lg bg-surface transition-all duration-150",
             loading ? "cursor-not-allowed opacity-60" : "cursor-pointer",
             open
-              ? "border-accent [box-shadow:0_0_0_3px_rgba(37,99,235,0.12)]"
+              ? "border-accent [box-shadow:0_0_0_3px_var(--tf-focus-ring)]"
               : "border-border"
           )}
         >
@@ -243,7 +247,7 @@ function GroupSelect({
               onClick={() => { onChange(null); setOpen(false); }}
               className={cn(
                 "px-3.5 py-2.5 text-sm cursor-pointer transition-colors duration-100 flex items-center justify-between",
-                !value ? "font-medium text-text-primary bg-[#F4F4F5]" : "text-text-secondary hover:bg-[#F4F4F5]"
+                !value ? "font-medium text-text-primary bg-hover" : "text-text-secondary hover:bg-hover"
               )}
             >
               No group
@@ -257,8 +261,8 @@ function GroupSelect({
                 className={cn(
                   "px-3.5 py-2.5 text-sm cursor-pointer transition-colors duration-100 flex items-center justify-between",
                   g.id === value
-                    ? "font-medium text-text-primary bg-[#F4F4F5]"
-                    : "text-text-primary hover:bg-[#F4F4F5]"
+                    ? "font-medium text-text-primary bg-hover"
+                    : "text-text-primary hover:bg-hover"
                 )}
               >
                 {g.title}
@@ -286,8 +290,8 @@ function AssigneeChip({ user, onRemove }: { user: User; onRemove: () => void }) 
       className={cn(
         "inline-flex items-center gap-1.5 pl-1 pr-2 py-1 rounded-full transition-all duration-150",
         hovered
-          ? "bg-accent-subtle border border-[#BFDBFE]"
-          : "bg-[#F4F4F5] border border-transparent"
+          ? "bg-accent-subtle border border-accent-border"
+          : "bg-hover border border-transparent"
       )}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -299,7 +303,7 @@ function AssigneeChip({ user, onRemove }: { user: User; onRemove: () => void }) 
         onClick={onRemove}
         className={cn(
           "w-4 h-4 rounded-full flex items-center justify-center transition-all duration-150 ml-0.5",
-          hovered ? "bg-[#DBEAFE] text-text-secondary" : "bg-border text-text-secondary"
+          hovered ? "bg-accent-hover text-text-secondary" : "bg-border text-text-secondary"
         )}
       >
         <X size={8} />
@@ -339,7 +343,7 @@ function AssigneePicker({
   return (
     <div ref={ref} className="relative">
       <div className="flex items-center gap-1.5 mb-1.5">
-        <label className="text-sm font-medium text-[#3F3F46]">Assignees</label>
+        <label className="text-sm font-medium text-text-label">Assignees</label>
         <span className="text-xs text-text-disabled">Optional</span>
       </div>
 
@@ -355,7 +359,7 @@ function AssigneePicker({
         type="button"
         onClick={() => setOpen((o) => !o)}
         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium
-                   text-text-secondary hover:bg-[#F4F4F5] transition-colors duration-150"
+                   text-text-secondary hover:bg-hover transition-colors duration-150"
       >
         <Plus size={13} />
         Add assignee
@@ -367,7 +371,7 @@ function AssigneePicker({
                       rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.06)]
                       z-50 overflow-hidden"
         >
-          <div className="p-2 border-b border-[#F4F4F5]">
+          <div className="p-2 border-b border-hover">
             <input
               autoFocus
               placeholder="Search members…"
@@ -383,7 +387,7 @@ function AssigneePicker({
                 key={u.id}
                 onClick={() => onToggle(u.id)}
                 className="flex items-center gap-2.5 px-3 py-2 cursor-pointer
-                           hover:bg-[#F4F4F5] transition-colors duration-150"
+                           hover:bg-hover transition-colors duration-150"
               >
                 <Avatar user={u} size={28} />
                 <div className="flex-1 min-w-0">
@@ -414,7 +418,7 @@ function DateInput({ value, onChange }: { value: string; onChange: (v: string) =
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center gap-1.5">
-        <label className="text-sm font-medium text-[#3F3F46]">Due Date</label>
+        <label className="text-sm font-medium text-text-label">Due Date</label>
         <span className="text-xs text-text-disabled">Optional</span>
       </div>
       <input
@@ -427,7 +431,7 @@ function DateInput({ value, onChange }: { value: string; onChange: (v: string) =
           "w-full h-11 px-4 border-[1.5px] rounded-lg bg-surface text-sm font-sans outline-none transition-all duration-150",
           value ? "text-text-primary" : "text-text-disabled",
           focused
-            ? "border-accent [box-shadow:0_0_0_3px_rgba(37,99,235,0.12)]"
+            ? "border-accent [box-shadow:0_0_0_3px_var(--tf-focus-ring)]"
             : "border-border"
         )}
       />
@@ -441,13 +445,14 @@ function CreateStandaloneTaskForm() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const company = useCompany();
+  const { project: projectParam } = Route.useSearch();
 
   const { data: projects = [] } = useQuery(companyProjectsQueryOptions(company.slug));
   const { data: users = [] } = useQuery(usersQueryOptions);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [projectSlug, setProjectSlug] = useState<string | null>(null);
+  const [projectSlug, setProjectSlug] = useState<string | null>(projectParam ?? null);
   const [groupId, setGroupId] = useState<string | null>(null);
   const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
   const [dueDate, setDueDate] = useState("");
@@ -483,10 +488,8 @@ function CreateStandaloneTaskForm() {
       await qc.invalidateQueries({ queryKey: ["companies", company.slug, "projects"] });
       if (projectSlug) {
         await qc.invalidateQueries({ queryKey: ["companies", company.slug, "project", projectSlug] });
-        void navigate({ to: "/c/$companySlug/projects/$projectSlug", params: { companySlug: company.slug, projectSlug } });
-      } else {
-        void navigate({ to: "/c/$companySlug/tasks", params: { companySlug: company.slug } });
       }
+      void navigate({ to: "/c/$companySlug", params: { companySlug: company.slug } });
     },
     onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to create task"),
   });
@@ -507,12 +510,14 @@ function CreateStandaloneTaskForm() {
       {/* Back nav */}
       <nav className="flex items-center gap-1.5 text-sm mb-7">
         <Link
-          to="/c/$companySlug/tasks"
+          to="/c/$companySlug"
           params={{ companySlug: company.slug }}
           className="flex items-center gap-1 text-accent-text font-medium hover:underline"
         >
           <ArrowLeft size={14} />
-          Tasks
+          {projectSlug
+            ? (projects.find((p) => p.slug === projectSlug)?.name ?? "Project")
+            : company.name}
         </Link>
         <span className="text-border">/</span>
         <span className="text-text-secondary font-medium">New task</span>
@@ -544,7 +549,7 @@ function CreateStandaloneTaskForm() {
 
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-1.5">
-              <label className="text-sm font-medium text-[#3F3F46]">Description</label>
+              <label className="text-sm font-medium text-text-label">Description</label>
               <span className="text-xs text-text-disabled">Optional</span>
             </div>
             <RichTextEditor
@@ -593,10 +598,10 @@ function CreateStandaloneTaskForm() {
         {/* Actions */}
         <div className="flex items-center justify-between pt-1">
           <Link
-            to="/c/$companySlug/tasks"
+            to="/c/$companySlug"
             params={{ companySlug: company.slug }}
             className="px-4 py-2 rounded-lg text-sm font-semibold text-text-secondary
-                       hover:bg-[#F4F4F5] transition-colors duration-150"
+                       hover:bg-hover transition-colors duration-150"
           >
             Cancel
           </Link>
@@ -607,7 +612,7 @@ function CreateStandaloneTaskForm() {
             className={cn(
               "inline-flex items-center gap-1.5 px-6 py-2.5 rounded-lg text-sm font-semibold transition-all duration-150",
               canSubmit
-                ? "bg-accent hover:bg-accent-text text-white cursor-pointer"
+                ? "bg-accent hover:bg-accent-text text-accent-foreground cursor-pointer"
                 : "bg-border text-text-disabled cursor-not-allowed"
             )}
           >

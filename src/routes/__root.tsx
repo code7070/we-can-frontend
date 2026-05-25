@@ -5,6 +5,7 @@ import {
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ErrorProvider } from "@/context/error-context";
+import { ThemeProvider } from "@/context/theme-context";
 import { ErrorDialog } from "@/components/ErrorDialog";
 import { PersistentHeader } from "@/components/layout/PersistentHeader";
 import { BottomNav } from "@/components/layout/BottomNav";
@@ -17,6 +18,7 @@ interface RouterContext {
 
 function RootLayout() {
   return (
+    <ThemeProvider>
     <ErrorProvider>
       <TooltipProvider>
         <div className="min-h-screen bg-bg">
@@ -31,6 +33,7 @@ function RootLayout() {
         <TanStackRouterDevtools />
       </TooltipProvider>
     </ErrorProvider>
+    </ThemeProvider>
   );
 }
 

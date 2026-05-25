@@ -74,7 +74,7 @@ function AddGroupForm({
         className={cn(
           "flex-1 h-9 px-3 rounded-lg bg-surface text-sm text-text-primary",
           "border border-border outline-none transition-all duration-150",
-          "focus:border-accent focus:[box-shadow:0_0_0_3px_rgba(37,99,235,0.12)]"
+          "focus:border-accent focus:[box-shadow:0_0_0_3px_var(--tf-focus-ring)]"
         )}
         disabled={mutation.isPending}
       />
@@ -91,7 +91,7 @@ function AddGroupForm({
           setTitle("");
           onDone?.();
         }}
-        className="p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-[#F4F4F5] transition-colors duration-150"
+        className="p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-hover transition-colors duration-150"
         aria-label="Cancel"
       >
         <X size={16} />
@@ -202,7 +202,7 @@ function ProjectContent() {
               to="/c/$companySlug/projects/$projectSlug/edit"
               params={{ companySlug: company.slug, projectSlug }}
               className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold
-                         text-text-secondary border border-border hover:bg-[#F4F4F5] transition-colors duration-150"
+                         text-text-secondary border border-border hover:bg-hover transition-colors duration-150"
             >
               <Settings size={13} className="sm:size-[15]" />
               <span className="hidden sm:inline">Edit</span>
@@ -211,7 +211,7 @@ function ProjectContent() {
               to="/c/$companySlug/projects/$projectSlug/tasks/new"
               params={{ companySlug: company.slug, projectSlug }}
               className="inline-flex items-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold
-                         bg-accent hover:bg-accent-text text-white transition-colors duration-150"
+                         bg-accent hover:bg-accent-text text-accent-foreground transition-colors duration-150"
             >
               <Plus size={13} className="sm:size-[15]" />
               <span className="hidden sm:inline">New task</span>
@@ -225,7 +225,7 @@ function ProjectContent() {
       {isLoggedIn && (
         <div className="mb-5">
           <DropdownMenu>
-            <DropdownMenuTrigger className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-text-secondary border border-border hover:bg-[#F4F4F5] hover:text-text-primary transition-colors duration-150 cursor-pointer outline-none">
+            <DropdownMenuTrigger className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-text-secondary border border-border hover:bg-hover hover:text-text-primary transition-colors duration-150 cursor-pointer outline-none">
               {filter === "my" ? <User size={14} /> : <Check size={14} />}
               {filter === "my" ? "My tasks" : "All tasks"}
               <ChevronDown size={14} className="text-text-disabled" />
@@ -294,7 +294,7 @@ function ProjectContent() {
                 <Link
                   to="/c/$companySlug/projects/$projectSlug/tasks/new"
                   params={{ companySlug: company.slug, projectSlug }}
-                  className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-all duration-150 border-t border-[#F4F4F5] text-text-disabled hover:text-accent hover:bg-[#FAFAFA]"
+                  className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-all duration-150 border-t border-hover text-text-disabled hover:text-accent hover:bg-soft"
                 >
                   <Plus size={14} />
                   Add ungrouped task
@@ -318,7 +318,7 @@ function ProjectContent() {
             <button
               onClick={() => setIsAddingGroup(true)}
               className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium
-                         text-text-disabled hover:text-text-secondary hover:bg-[#F4F4F5]
+                         text-text-disabled hover:text-text-secondary hover:bg-hover
                          border border-dashed border-border hover:border-solid
                          transition-all duration-150 cursor-pointer w-full"
             >

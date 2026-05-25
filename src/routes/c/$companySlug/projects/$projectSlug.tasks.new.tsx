@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSuspenseQuery, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import {
@@ -16,12 +16,13 @@ import {
 import { companyProjectQueryOptions } from "@/api/projects";
 import { useCompany } from "@/context/company-context";
 import { createStandaloneTask } from "@/api/tasks";
+import { usersQueryOptions } from "@/api/users";
 import { toast } from "sonner";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { FormInput } from "@/components/FormInput";
 import { getAvatarColor } from "@/lib/avatar-colors";
 import { cn } from "@/lib/utils";
-import type { TaskGroup } from "@/api/types";
+import type { TaskGroup, User } from "@/api/types";
 
 // ─── Route ──────────────────────────────────────────────────────────────────
 
@@ -35,17 +36,6 @@ export const Route = createFileRoute("/c/$companySlug/projects/$projectSlug/task
     queryClient.ensureQueryData(companyProjectQueryOptions(params.companySlug, params.projectSlug)),
   component: CreateTaskPage,
 });
-
-// ─── Static members (replace with API when backend ready) ───────────────────
-
-const MEMBERS = [
-  { id: "ra", initials: "RA", name: "Rizky Aditya", role: "Product Manager" },
-  { id: "sn", initials: "SN", name: "Sarah Natalia", role: "UI/UX Designer" },
-  { id: "bh", initials: "BH", name: "Bima Hartono", role: "Frontend Engineer" },
-  { id: "dw", initials: "DW", name: "Dinda Wijaya", role: "Backend Engineer" },
-  { id: "fp", initials: "FP", name: "Fahmi Pratama", role: "QA Engineer" },
-  { id: "am", initials: "AM", name: "Ayu Maharani", role: "Project Manager" },
-];
 
 // ─── Shared primitives ───────────────────────────────────────────────────────
 
@@ -74,25 +64,29 @@ function SectionLabel({ icon, children }: { icon: React.ReactNode; children: Rea
 
 // ─── Member Chip ─────────────────────────────────────────────────────────────
 
-function MemberChip({ member, onRemove }: { member: typeof MEMBERS[0]; onRemove: () => void }) {
+function getInitials(name: string) {
+  return name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+}
+
+function MemberChip({ user, onRemove }: { user: User; onRemove: () => void }) {
   const [hovered, setHovered] = useState(false);
   return (
     <div
       className={cn(
         "inline-flex items-center gap-1.5 pl-1 pr-2 py-1 rounded-full transition-all duration-150",
-        hovered ? "bg-accent-subtle border border-[#BFDBFE]" : "bg-[#F4F4F5] border border-transparent"
+        hovered ? "bg-accent-subtle border border-accent-border" : "bg-hover border border-transparent"
       )}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <Avatar name={member.name} initials={member.initials} size={22} />
-      <span className="text-xs font-medium text-text-primary">{member.name}</span>
+      <Avatar name={user.name} initials={getInitials(user.name)} size={22} />
+      <span className="text-xs font-medium text-text-primary">{user.name}</span>
       <button
         type="button"
         onClick={onRemove}
         className={cn(
           "w-4 h-4 rounded-full flex items-center justify-center transition-all duration-150 ml-0.5",
-          hovered ? "bg-[#DBEAFE] text-text-secondary" : "bg-border text-text-secondary"
+          hovered ? "bg-accent-hover text-text-secondary" : "bg-border text-text-secondary"
         )}
       >
         <X size={8} />
@@ -103,7 +97,7 @@ function MemberChip({ member, onRemove }: { member: typeof MEMBERS[0]; onRemove:
 
 // ─── Member Picker ───────────────────────────────────────────────────────────
 
-function MemberPicker({ selected, onToggle }: { selected: string[]; onToggle: (id: string) => void }) {
+function MemberPicker({ selected, users, onToggle }: { selected: string[]; users: User[]; onToggle: (id: string) => void }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const ref = useRef<HTMLDivElement>(null);
@@ -116,24 +110,24 @@ function MemberPicker({ selected, onToggle }: { selected: string[]; onToggle: (i
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  const filtered = MEMBERS.filter(
-    (m) =>
-      m.name.toLowerCase().includes(search.toLowerCase()) ||
-      m.role.toLowerCase().includes(search.toLowerCase())
+  const filtered = users.filter(
+    (u) =>
+      u.name.toLowerCase().includes(search.toLowerCase()) ||
+      (u.role ?? "").toLowerCase().includes(search.toLowerCase())
   );
-  const selectedMembers = MEMBERS.filter((m) => selected.includes(m.id));
+  const selectedUsers = users.filter((u) => selected.includes(u.id));
 
   return (
     <div ref={ref} className="relative">
       <div className="flex items-center gap-1.5 mb-1.5">
-        <label className="text-sm font-medium text-[#3F3F46]">Assignees</label>
+        <label className="text-sm font-medium text-text-label">Assignees</label>
         <span className="text-xs text-text-disabled">Optional</span>
       </div>
 
-      {selectedMembers.length > 0 && (
+      {selectedUsers.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mb-2">
-          {selectedMembers.map((m) => (
-            <MemberChip key={m.id} member={m} onRemove={() => onToggle(m.id)} />
+          {selectedUsers.map((u) => (
+            <MemberChip key={u.id} user={u} onRemove={() => onToggle(u.id)} />
           ))}
         </div>
       )}
@@ -142,7 +136,7 @@ function MemberPicker({ selected, onToggle }: { selected: string[]; onToggle: (i
         type="button"
         onClick={() => setOpen(!open)}
         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium
-                   text-text-secondary hover:bg-[#F4F4F5] transition-colors duration-150"
+                   text-text-secondary hover:bg-hover transition-colors duration-150"
       >
         <Plus size={13} />
         Add assignee
@@ -152,7 +146,7 @@ function MemberPicker({ selected, onToggle }: { selected: string[]; onToggle: (i
         <div className="absolute top-full left-0 mt-1 w-72 bg-surface border border-border
                         rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.06)]
                         z-50 overflow-hidden">
-          <div className="p-2 border-b border-[#F4F4F5]">
+          <div className="p-2 border-b border-hover">
             <input
               autoFocus
               placeholder="Search members..."
@@ -163,19 +157,19 @@ function MemberPicker({ selected, onToggle }: { selected: string[]; onToggle: (i
             />
           </div>
           <div className="max-h-60 overflow-y-auto py-1">
-            {filtered.map((m) => (
+            {filtered.map((u) => (
               <div
-                key={m.id}
-                onClick={() => onToggle(m.id)}
+                key={u.id}
+                onClick={() => onToggle(u.id)}
                 className="flex items-center gap-2.5 px-3 py-2 cursor-pointer
-                           hover:bg-[#F4F4F5] transition-colors duration-150"
+                           hover:bg-hover transition-colors duration-150"
               >
-                <Avatar name={m.name} initials={m.initials} size={28} />
+                <Avatar name={u.name} initials={getInitials(u.name)} size={28} />
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-text-primary">{m.name}</div>
-                  <div className="text-xs text-text-disabled">{m.role}</div>
+                  <div className="text-sm font-medium text-text-primary">{u.name}</div>
+                  {u.role && <div className="text-xs text-text-disabled capitalize">{u.role}</div>}
                 </div>
-                {selected.includes(m.id) && <Check size={14} className="text-accent shrink-0" />}
+                {selected.includes(u.id) && <Check size={14} className="text-accent shrink-0" />}
               </div>
             ))}
             {filtered.length === 0 && (
@@ -214,7 +208,7 @@ function GroupSelect({ value, groups, onChange }: GroupSelectProps) {
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center gap-1.5">
-        <label className="text-sm font-medium text-[#3F3F46]">Task Group</label>
+        <label className="text-sm font-medium text-text-label">Task Group</label>
         <span className="text-xs text-text-disabled">Optional</span>
       </div>
       <div ref={ref} className="relative">
@@ -223,7 +217,7 @@ function GroupSelect({ value, groups, onChange }: GroupSelectProps) {
           className={cn(
             "flex items-center gap-2.5 h-11 px-4 border-[1.5px] rounded-lg bg-surface cursor-pointer transition-all duration-150",
             open
-              ? "border-accent [box-shadow:0_0_0_3px_rgba(37,99,235,0.12)]"
+              ? "border-accent [box-shadow:0_0_0_3px_var(--tf-focus-ring)]"
               : "border-border"
           )}
         >
@@ -246,7 +240,7 @@ function GroupSelect({ value, groups, onChange }: GroupSelectProps) {
               onMouseEnter={() => setHIdx(-1)}
               className={cn(
                 "px-3.5 py-2.5 text-sm cursor-pointer transition-colors duration-100 flex items-center justify-between",
-                !value ? "font-medium text-text-primary bg-[#F4F4F5]" : "text-text-secondary hover:bg-[#F4F4F5]"
+                !value ? "font-medium text-text-primary bg-hover" : "text-text-secondary hover:bg-hover"
               )}
             >
               No group
@@ -261,7 +255,7 @@ function GroupSelect({ value, groups, onChange }: GroupSelectProps) {
                 onMouseLeave={() => setHIdx(-1)}
                 className={cn(
                   "px-3.5 py-2.5 text-sm cursor-pointer transition-colors duration-100 flex items-center justify-between",
-                  hIdx === i ? "bg-[#F4F4F5]" : "bg-transparent",
+                  hIdx === i ? "bg-hover" : "bg-transparent",
                   g.id === value ? "font-medium text-text-primary" : "font-normal text-text-primary"
                 )}
               >
@@ -283,7 +277,7 @@ function DateInput({ value, onChange }: { value: string; onChange: (v: string) =
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center gap-1.5">
-        <label className="text-sm font-medium text-[#3F3F46]">Due Date</label>
+        <label className="text-sm font-medium text-text-label">Due Date</label>
         <span className="text-xs text-text-disabled">Optional</span>
       </div>
       <input
@@ -296,7 +290,7 @@ function DateInput({ value, onChange }: { value: string; onChange: (v: string) =
           "w-full h-11 px-4 border-[1.5px] rounded-lg bg-surface text-sm font-sans outline-none transition-all duration-150",
           value ? "text-text-primary" : "text-text-disabled",
           focused
-            ? "border-accent [box-shadow:0_0_0_3px_rgba(37,99,235,0.12)]"
+            ? "border-accent [box-shadow:0_0_0_3px_var(--tf-focus-ring)]"
             : "border-border"
         )}
       />
@@ -318,7 +312,7 @@ function LinkedTaskChip({ task, onRemove }: { task: ExistingTask; onRemove: () =
   return (
     <div
       className="flex items-center gap-3 px-3.5 py-2.5 bg-surface border border-border rounded-lg transition-colors duration-150"
-      style={{ borderLeft: "3px solid #2563EB", background: hovered ? "#FAFAFA" : "#FFF" }}
+      style={{ borderLeft: "3px solid var(--accent)", background: hovered ? "var(--tf-soft)" : "var(--tf-surface)" }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
@@ -326,12 +320,12 @@ function LinkedTaskChip({ task, onRemove }: { task: ExistingTask; onRemove: () =
         className="flex items-center justify-center rounded-full shrink-0"
         style={{
           width: 16, height: 16,
-          border: `2px solid ${task.isDone ? "#2563EB" : "#D4D4D8"}`,
-          background: task.isDone ? "#2563EB" : "#FFF",
+          border: `2px solid ${task.isDone ? "var(--accent)" : "var(--tf-border-strong)"}`,
+          background: task.isDone ? "var(--accent)" : "var(--tf-surface)",
         }}
       >
         {task.isDone && (
-          <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#FFF" strokeWidth="3" strokeLinecap="round">
+          <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="var(--accent-foreground)" strokeWidth="3" strokeLinecap="round">
             <polyline points="20 6 9 17 4 12" />
           </svg>
         )}
@@ -347,7 +341,7 @@ function LinkedTaskChip({ task, onRemove }: { task: ExistingTask; onRemove: () =
         onClick={onRemove}
         className={cn(
           "w-6 h-6 rounded-md flex items-center justify-center transition-all duration-150 shrink-0",
-          hovered ? "bg-[#FEE2E2] text-danger" : "bg-transparent text-border"
+          hovered ? "bg-danger-bg text-danger" : "bg-transparent text-border"
         )}
       >
         <X size={12} />
@@ -400,7 +394,7 @@ function LinkedTaskPicker({
         type="button"
         onClick={() => setOpen(!open)}
         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium
-                   text-text-secondary hover:bg-[#F4F4F5] transition-colors duration-150"
+                   text-text-secondary hover:bg-hover transition-colors duration-150"
       >
         <LinkIcon size={13} />
         Link existing task
@@ -410,7 +404,7 @@ function LinkedTaskPicker({
         <div className="absolute top-full left-0 right-0 mt-1 max-w-[480px] bg-surface border border-border
                         rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.06)]
                         z-50 overflow-hidden">
-          <div className="p-2 border-b border-[#F4F4F5]">
+          <div className="p-2 border-b border-hover">
             <input
               autoFocus
               placeholder="Search tasks..."
@@ -425,19 +419,19 @@ function LinkedTaskPicker({
               <div
                 key={t.id}
                 onClick={() => { onAdd(t.id); setOpen(false); setSearch(""); }}
-                className="px-3.5 py-2.5 cursor-pointer hover:bg-[#F4F4F5] transition-colors duration-100"
+                className="px-3.5 py-2.5 cursor-pointer hover:bg-hover transition-colors duration-100"
               >
                 <div className="flex items-center gap-2">
                   <div
                     className="flex items-center justify-center rounded-full shrink-0"
                     style={{
                       width: 16, height: 16,
-                      border: `2px solid ${t.isDone ? "#2563EB" : "#D4D4D8"}`,
-                      background: t.isDone ? "#2563EB" : "#FFF",
+                      border: `2px solid ${t.isDone ? "var(--accent)" : "var(--tf-border-strong)"}`,
+                      background: t.isDone ? "var(--accent)" : "var(--tf-surface)",
                     }}
                   >
                     {t.isDone && (
-                      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#FFF" strokeWidth="3" strokeLinecap="round">
+                      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="var(--accent-foreground)" strokeWidth="3" strokeLinecap="round">
                         <polyline points="20 6 9 17 4 12" />
                       </svg>
                     )}
@@ -470,6 +464,7 @@ function CreateTaskForm() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: project } = useSuspenseQuery(companyProjectQueryOptions(company.slug, projectSlug));
+  const { data: users = [] } = useQuery(usersQueryOptions);
 
   // Pre-select group by title from search param
   const preselectedGroup = project.groups.find(
@@ -568,7 +563,7 @@ function CreateTaskForm() {
 
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-1.5">
-              <label className="text-sm font-medium text-[#3F3F46]">Description</label>
+              <label className="text-sm font-medium text-text-label">Description</label>
               <span className="text-xs text-text-disabled">Optional</span>
             </div>
             <RichTextEditor
@@ -587,7 +582,7 @@ function CreateTaskForm() {
           <SectionLabel icon={<Users size={15} className="text-text-disabled" />}>
             People &amp; Dates
           </SectionLabel>
-          <MemberPicker selected={selectedMembers} onToggle={toggleMember} />
+          <MemberPicker selected={selectedMembers} users={users} onToggle={toggleMember} />
           <DateInput value={dueDate} onChange={setDueDate} />
         </div>
 
@@ -615,7 +610,7 @@ function CreateTaskForm() {
             to="/c/$companySlug/projects/$projectSlug"
             params={{ companySlug: company.slug, projectSlug }}
             className="px-4 py-2 rounded-lg text-sm font-semibold text-text-secondary
-                       hover:bg-[#F4F4F5] transition-colors duration-150"
+                       hover:bg-hover transition-colors duration-150"
           >
             Cancel
           </Link>
@@ -626,7 +621,7 @@ function CreateTaskForm() {
             className={cn(
               "inline-flex items-center gap-1.5 px-6 py-2.5 rounded-lg text-sm font-semibold transition-all duration-150",
               canSubmit
-                ? "bg-accent hover:bg-accent-text text-white cursor-pointer"
+                ? "bg-accent hover:bg-accent-text text-accent-foreground cursor-pointer"
                 : "bg-border text-text-disabled cursor-not-allowed"
             )}
           >

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Upload, Grid3x3, X, Search, Film, Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { listMedia, uploadMedia, detectMediaType, type MediaObject } from "@/api/media";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -24,6 +25,11 @@ export interface InsertedMedia {
   mimeType?: string;
   file?: File;
   key?: string;
+}
+
+interface PendingFile {
+  uid: string;
+  file: File;
 }
 
 // ─── Formatters ──────────────────────────────────────────────────────────────
@@ -85,7 +91,7 @@ function UploadZone({ onFilesSelected }: { onFilesSelected: (files: File[]) => v
       className={cn(
         "flex flex-col items-center justify-center gap-3 text-center cursor-pointer transition-all duration-150",
         "rounded-xl px-6 py-10 border-2 border-dashed",
-        dragOver ? "border-accent bg-accent-subtle" : "border-border bg-[#FAFAFA]"
+        dragOver ? "border-accent bg-accent-subtle" : "border-border bg-soft"
       )}
     >
       <input
@@ -101,7 +107,7 @@ function UploadZone({ onFilesSelected }: { onFilesSelected: (files: File[]) => v
       <div
         className={cn(
           "w-12 h-12 rounded-full flex items-center justify-center transition-all duration-150",
-          dragOver ? "bg-[#DBEAFE] text-accent" : "bg-[#F4F4F5] text-text-secondary"
+          dragOver ? "bg-accent-hover text-accent" : "bg-hover text-text-secondary"
         )}
       >
         <Upload size={22} />
@@ -127,12 +133,12 @@ function UploadedFilePreview({
   file,
   uploading,
   onRemove,
-  onInsert,
+  onUpload,
 }: {
   file: File;
   uploading: boolean;
   onRemove: () => void;
-  onInsert: () => void;
+  onUpload: () => void;
 }) {
   const [hovered, setHovered] = useState(false);
   const isImage = file.type.startsWith("image/");
@@ -146,7 +152,7 @@ function UploadedFilePreview({
       onMouseLeave={() => setHovered(false)}
       className={cn(
         "flex items-center gap-3 px-3.5 py-2.5 border border-border rounded-lg transition-colors duration-150",
-        hovered ? "bg-[#F4F4F5]" : "bg-surface"
+        hovered ? "bg-hover" : "bg-surface"
       )}
     >
       {preview ? (
@@ -155,7 +161,7 @@ function UploadedFilePreview({
           style={{ backgroundImage: `url(${preview})` }}
         />
       ) : (
-        <div className="w-11 h-11 rounded-md shrink-0 bg-[#F4F4F5] flex items-center justify-center">
+        <div className="w-11 h-11 rounded-md shrink-0 bg-hover flex items-center justify-center">
           <Film size={18} className="text-text-disabled" />
         </div>
       )}
@@ -168,7 +174,7 @@ function UploadedFilePreview({
       <div className="flex gap-1.5 shrink-0">
         <button
           type="button"
-          onClick={onInsert}
+          onClick={onUpload}
           disabled={uploading}
           className={cn(
             "px-2.5 py-1 rounded-md text-white text-xs font-semibold transition-colors duration-150 flex items-center gap-1",
@@ -176,13 +182,13 @@ function UploadedFilePreview({
           )}
         >
           {uploading && <Loader2 size={12} className="animate-spin" />}
-          {uploading ? "Uploading…" : "Insert"}
+          {uploading ? "Uploading…" : "Upload"}
         </button>
         <button
           type="button"
           onClick={onRemove}
           disabled={uploading}
-          className="w-7 h-7 rounded-md text-text-disabled hover:bg-[#F4F4F5] hover:text-text-primary flex items-center justify-center transition-colors duration-150 disabled:opacity-50"
+          className="w-7 h-7 rounded-md text-text-disabled hover:bg-hover hover:text-text-primary flex items-center justify-center transition-colors duration-150 disabled:opacity-50"
         >
           <X size={14} />
         </button>
@@ -212,11 +218,11 @@ function MediaLibraryGridItem({
       onMouseLeave={() => setHovered(false)}
       className="rounded-lg overflow-hidden cursor-pointer bg-surface transition-all duration-150"
       style={{
-        border: `2px solid ${selected ? "#2563EB" : hovered ? "#BFDBFE" : "#E4E4E7"}`,
+        border: `2px solid ${selected ? "var(--accent)" : hovered ? "var(--tf-accent-border)" : "var(--border)"}`,
       }}
     >
       <div
-        className="w-full relative flex items-center justify-center bg-[#F4F4F5] overflow-hidden"
+        className="w-full relative flex items-center justify-center bg-hover overflow-hidden"
         style={{ aspectRatio: "4/3" }}
       >
         {item.type === "image" ? (
@@ -264,7 +270,7 @@ function MediaFilterTabs({
     { id: "video" as const, label: "Video" },
   ];
   return (
-    <div className="flex gap-1 bg-[#F4F4F5] rounded-lg p-[3px]">
+    <div className="flex gap-1 bg-hover rounded-lg p-[3px]">
       {tabs.map((tab) => (
         <button
           key={tab.id}
@@ -293,16 +299,28 @@ export interface MediaSelectorProps {
 }
 
 export function MediaSelector({ open, onClose, onInsert }: MediaSelectorProps) {
+  const queryClient = useQueryClient();
   const [tab, setTab] = useState<"upload" | "library">("upload");
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
-  const [uploadingKey, setUploadingKey] = useState<string | null>(null);
+  const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
+  const [uploadingUids, setUploadingUids] = useState<Set<string>>(new Set());
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<MediaLibraryItem | null>(null);
   const [filterType, setFilterType] = useState<"all" | "image" | "video">("all");
   const [search, setSearch] = useState("");
-  const [library, setLibrary] = useState<MediaLibraryItem[]>([]);
-  const [libraryLoading, setLibraryLoading] = useState(false);
-  const [libraryError, setLibraryError] = useState<string | null>(null);
+  // Tracks whether at least one upload has started, to avoid switching tabs prematurely
+  const uploadStartedRef = useRef(false);
+
+  const { data: library = [], isLoading: libraryLoading, error: libraryError } = useQuery({
+    queryKey: ["media-library"],
+    queryFn: async () => {
+      const objects = await listMedia();
+      return objects
+        .map(toLibraryItem)
+        .sort((a, b) => b.id.localeCompare(a.id));
+    },
+    enabled: open && tab === "library",
+    staleTime: Infinity, // only refetch after upload via invalidateQueries
+  });
 
   useEffect(() => {
     if (!open) return;
@@ -315,40 +333,32 @@ export function MediaSelector({ open, onClose, onInsert }: MediaSelectorProps) {
     };
   }, [open, onClose]);
 
+  // When all uploads finish (pending queue empty, no uploads in-flight), switch to library and refetch
   useEffect(() => {
-    if (!open || tab !== "library") return;
-    let cancelled = false;
-    setLibraryLoading(true);
-    setLibraryError(null);
-    listMedia()
-      .then((objects) => {
-        if (cancelled) return;
-        const items = objects
-          .map(toLibraryItem)
-          .sort((a, b) => b.id.localeCompare(a.id));
-        setLibrary(items);
-      })
-      .catch((e: unknown) => {
-        if (cancelled) return;
-        setLibraryError(e instanceof Error ? e.message : "Failed to load library");
-      })
-      .finally(() => {
-        if (!cancelled) setLibraryLoading(false);
-      });
-    return () => { cancelled = true; };
-  }, [open, tab]);
+    if (!uploadStartedRef.current) return;
+    if (pendingFiles.length === 0 && uploadingUids.size === 0) {
+      uploadStartedRef.current = false;
+      queryClient.invalidateQueries({ queryKey: ["media-library"] });
+      setTab("library");
+    }
+  }, [pendingFiles, uploadingUids, queryClient]);
 
   if (!open) return null;
 
-  const filteredLibrary = library.filter((item) => {
+  const filteredLibrary = (library as MediaLibraryItem[]).filter((item) => {
     if (filterType !== "all" && item.type !== filterType) return false;
     if (search && !item.name.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
 
-  async function handleInsertUploaded(file: File, index: number) {
-    const uploadKey = `${file.name}-${index}`;
-    setUploadingKey(uploadKey);
+  function addFiles(files: File[]) {
+    const newItems = files.map((file) => ({ uid: crypto.randomUUID(), file }));
+    setPendingFiles((prev) => [...prev, ...newItems]);
+  }
+
+  async function handleUploadFile(uid: string, file: File) {
+    uploadStartedRef.current = true;
+    setUploadingUids((prev) => new Set([...prev, uid]));
     setUploadError(null);
     try {
       const uploaded = await uploadMedia(file);
@@ -361,11 +371,15 @@ export function MediaSelector({ open, onClose, onInsert }: MediaSelectorProps) {
         mimeType: uploaded.type,
         key: uploaded.key,
       });
-      onClose();
+      setPendingFiles((prev) => prev.filter((pf) => pf.uid !== uid));
     } catch (e) {
       setUploadError(e instanceof Error ? e.message : "Upload failed");
     } finally {
-      setUploadingKey(null);
+      setUploadingUids((prev) => {
+        const next = new Set(prev);
+        next.delete(uid);
+        return next;
+      });
     }
   }
 
@@ -410,7 +424,7 @@ export function MediaSelector({ open, onClose, onInsert }: MediaSelectorProps) {
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-lg text-text-disabled hover:bg-[#F4F4F5] hover:text-text-primary flex items-center justify-center transition-colors duration-150"
+            className="w-8 h-8 rounded-lg text-text-disabled hover:bg-hover hover:text-text-primary flex items-center justify-center transition-colors duration-150"
           >
             <X size={16} />
           </button>
@@ -446,25 +460,22 @@ export function MediaSelector({ open, onClose, onInsert }: MediaSelectorProps) {
         <div className="flex-1 overflow-y-auto p-6">
           {tab === "upload" && (
             <div className="flex flex-col gap-4">
-              <UploadZone onFilesSelected={(files) => setUploadedFiles((prev) => [...prev, ...files])} />
-              {uploadedFiles.length > 0 && (
+              <UploadZone onFilesSelected={addFiles} />
+              {pendingFiles.length > 0 && (
                 <div>
                   <div className="text-xs font-semibold text-text-secondary uppercase tracking-[0.07em] mb-2.5">
-                    Uploaded files
+                    Files to upload
                   </div>
                   <div className="flex flex-col gap-2">
-                    {uploadedFiles.map((f, i) => {
-                      const uploadKey = `${f.name}-${i}`;
-                      return (
-                        <UploadedFilePreview
-                          key={uploadKey}
-                          file={f}
-                          uploading={uploadingKey === uploadKey}
-                          onRemove={() => setUploadedFiles((prev) => prev.filter((_, j) => j !== i))}
-                          onInsert={() => handleInsertUploaded(f, i)}
-                        />
-                      );
-                    })}
+                    {pendingFiles.map(({ uid, file }) => (
+                      <UploadedFilePreview
+                        key={uid}
+                        file={file}
+                        uploading={uploadingUids.has(uid)}
+                        onRemove={() => setPendingFiles((prev) => prev.filter((pf) => pf.uid !== uid))}
+                        onUpload={() => handleUploadFile(uid, file)}
+                      />
+                    ))}
                   </div>
                 </div>
               )}
@@ -499,7 +510,7 @@ export function MediaSelector({ open, onClose, onInsert }: MediaSelectorProps) {
                 </div>
               ) : libraryError ? (
                 <div className="py-12 px-6 text-center text-[13px] text-danger">
-                  {libraryError}
+                  {libraryError instanceof Error ? libraryError.message : "Failed to load library"}
                 </div>
               ) : filteredLibrary.length > 0 ? (
                 <div className="grid grid-cols-3 gap-3">
@@ -523,7 +534,7 @@ export function MediaSelector({ open, onClose, onInsert }: MediaSelectorProps) {
 
         {/* Footer (library tab) */}
         {tab === "library" && (
-          <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-[#FAFAFA] shrink-0">
+          <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-soft shrink-0">
             <span className="text-[13px] text-text-secondary truncate">
               {selectedItem ? (
                 <span>
@@ -539,7 +550,7 @@ export function MediaSelector({ open, onClose, onInsert }: MediaSelectorProps) {
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 rounded-lg border border-border bg-surface text-[13px] font-medium text-text-secondary hover:bg-[#F4F4F5] transition-colors duration-150"
+                className="px-4 py-2 rounded-lg border border-border bg-surface text-[13px] font-medium text-text-secondary hover:bg-hover transition-colors duration-150"
               >
                 Cancel
               </button>
@@ -550,7 +561,7 @@ export function MediaSelector({ open, onClose, onInsert }: MediaSelectorProps) {
                 className={cn(
                   "px-4 py-2 rounded-lg text-[13px] font-semibold transition-all duration-150",
                   selectedItem
-                    ? "bg-accent hover:bg-accent-text text-white cursor-pointer"
+                    ? "bg-accent hover:bg-accent-text text-accent-foreground cursor-pointer"
                     : "bg-border text-text-disabled cursor-not-allowed"
                 )}
               >

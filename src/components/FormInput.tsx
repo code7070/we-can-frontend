@@ -20,7 +20,7 @@ export function FormInput({ label, placeholder, value, onChange, required, error
     <div className="flex flex-col gap-1.5">
       {label && (
         <div className="flex items-center gap-1">
-          <label className="text-sm font-medium text-[#3F3F46]">{label}</label>
+          <label className="text-sm font-medium text-text-label">{label}</label>
           {required && <span className="text-danger text-xs">*</span>}
         </div>
       )}
@@ -38,7 +38,7 @@ export function FormInput({ label, placeholder, value, onChange, required, error
           error
             ? "border-danger [box-shadow:0_0_0_3px_rgba(220,38,38,0.12)]"
             : focused
-              ? "border-accent [box-shadow:0_0_0_3px_rgba(37,99,235,0.12)]"
+              ? "border-accent [box-shadow:0_0_0_3px_var(--tf-focus-ring)]"
               : "border-border"
         )}
       />
