@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, ListChecks, FolderKanban, User } from "lucide-react";
+import { Home, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useCompanyOptional } from "@/context/company-context";
@@ -24,9 +24,7 @@ export function BottomNav() {
 
   const navItems = company
     ? [
-        { label: "Home", to: `/c/${company.slug}/`, exact: true, icon: Home },
-        { label: "Tasks", to: `/c/${company.slug}/tasks/`, exact: false, icon: ListChecks },
-        { label: "Projects", to: `/c/${company.slug}/projects/`, exact: false, icon: FolderKanban },
+        { label: "Home", to: `/c/${company.slug}/`, exact: false, icon: Home },
         { label: "Account", to: isLoggedIn ? "/settings" : "/login", exact: true, icon: User },
       ]
     : [
@@ -48,7 +46,7 @@ export function BottomNav() {
                 "relative flex flex-col items-center justify-center gap-0.5 w-14 h-11 rounded-lg transition-colors duration-150",
                 active
                   ? "text-accent"
-                  : "text-text-secondary hover:text-text-primary hover:bg-[#F4F4F5]"
+                  : "text-text-secondary hover:text-text-primary hover:bg-hover"
               )}
             >
               <Icon

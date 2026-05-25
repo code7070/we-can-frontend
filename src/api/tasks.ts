@@ -12,7 +12,9 @@ export const taskQueryOptions = (taskId: string) =>
 export type TasksFilter = {
   assignee_id?: string;
   project_id?: string;
+  project_ids?: string[]; // batch fetch for multiple projects
   is_done?: "true" | "false";
+  closed_within_days?: number;
   q?: string;
 };
 
@@ -24,6 +26,8 @@ export const tasksListQueryOptions = (filters: TasksFilter = {}) =>
       if (filters.assignee_id) params.set("assignee_id", filters.assignee_id);
       if (filters.project_id) params.set("project_id", filters.project_id);
       if (filters.is_done) params.set("is_done", filters.is_done);
+      if (filters.closed_within_days)
+        params.set("closed_within_days", String(filters.closed_within_days));
       params.set("limit", "100");
       const qs = params.toString();
       return apiFetch<TaskListResponse>(`/tasks${qs ? `?${qs}` : ""}`);
@@ -95,7 +99,10 @@ export const companyTasksListQueryOptions = (
       const params = new URLSearchParams();
       if (filters.assignee_id) params.set("assignee_id", filters.assignee_id);
       if (filters.project_id) params.set("project_id", filters.project_id);
+      if (filters.project_ids?.length) params.set("project_ids", filters.project_ids.join(","));
       if (filters.is_done) params.set("is_done", filters.is_done);
+      if (filters.closed_within_days)
+        params.set("closed_within_days", String(filters.closed_within_days));
       params.set("limit", "100");
       const qs = params.toString();
       return apiFetch<TaskListResponse>(
