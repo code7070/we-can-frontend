@@ -17,6 +17,7 @@ export interface User {
   avatarUrl?: string | null;
   role?: UserRole;
   createdAt?: string;
+  avatarUrl?: string;
 }
 
 export interface CreateUserInput {

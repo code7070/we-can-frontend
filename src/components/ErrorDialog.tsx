@@ -45,10 +45,16 @@ export function ErrorDialog() {
               <ul className="mb-4 rounded-lg border border-border bg-bg px-4 py-3 space-y-1">
                 {Object.entries(error.fields).map(([field, messages]) =>
                   messages.map((msg, i) => (
-                    <li key={`${field}-${i}`} className="text-xs text-text-secondary">
-                      <span className="font-medium text-text-primary capitalize">{field}:</span> {msg}
+                    <li
+                      key={`${field}-${i}`}
+                      className="text-xs text-text-secondary"
+                    >
+                      <span className="font-medium text-text-primary capitalize">
+                        {field}:
+                      </span>{" "}
+                      {msg}
                     </li>
-                  ))
+                  )),
                 )}
               </ul>
             )}

@@ -1,7 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { ChevronDown, Terminal, Lock, Globe, Copy, Check, Settings } from "lucide-react";
+import {
+  ChevronDown,
+  Terminal,
+  Lock,
+  Globe,
+  Copy,
+  Check,
+  Settings,
+} from "lucide-react";
 import { apiFetch } from "@/api/client";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -131,7 +139,11 @@ function CopyButton({ text }: { text: string }) {
       title="Copy to clipboard"
       className="p-1.5 rounded text-text-secondary hover:text-text-primary hover:bg-hover transition-colors"
     >
-      {copied ? <Check size={14} className="text-success" /> : <Copy size={14} />}
+      {copied ? (
+        <Check size={14} className="text-success" />
+      ) : (
+        <Copy size={14} />
+      )}
     </button>
   );
 }
@@ -141,7 +153,9 @@ function CodeBlock({ label, code }: { label: string; code: string }) {
   return (
     <div className="bg-surface border border-border rounded-lg overflow-hidden">
       <div className="flex items-center justify-between px-3 py-1.5 border-b border-border bg-hover/50">
-        <span className="text-xs font-mono text-text-secondary font-medium">{label}</span>
+        <span className="text-xs font-mono text-text-secondary font-medium">
+          {label}
+        </span>
         <CopyButton text={rawText} />
       </div>
       <pre
@@ -213,7 +227,10 @@ res = requests.post(
       <summary className="flex items-center gap-1.5 text-xs font-medium text-accent cursor-pointer hover:text-accent/80 transition-colors select-none">
         <Terminal size={14} />
         Implementation examples
-        <ChevronDown size={14} className="transition-transform group-open:rotate-180" />
+        <ChevronDown
+          size={14}
+          className="transition-transform group-open:rotate-180"
+        />
       </summary>
       <div className="mt-3 flex flex-col gap-3">
         <CodeBlock label="curl" code={curl} />
@@ -245,15 +262,22 @@ function RequestBodyProps({ schema }: { schema: OpenApiSchema }) {
   return (
     <div className="border border-border rounded-lg overflow-hidden">
       {Object.entries(props).map(([name, prop]) => (
-        <div key={name} className="flex items-start gap-3 px-3 py-2 border-b border-border last:border-0 text-xs">
-          <code className="font-mono text-text-primary w-28 shrink-0 pt-0.5">{name}</code>
+        <div
+          key={name}
+          className="flex items-start gap-3 px-3 py-2 border-b border-border last:border-0 text-xs"
+        >
+          <code className="font-mono text-text-primary w-28 shrink-0 pt-0.5">
+            {name}
+          </code>
           <span className="text-text-disabled bg-hover px-1.5 py-0.5 rounded shrink-0">
             {prop.type ?? "object"}
             {prop.format ? `(${prop.format})` : ""}
           </span>
           <span className="text-text-secondary flex-1">
             {prop.description ??
-              (prop.example !== undefined ? `e.g. ${JSON.stringify(prop.example)}` : "—")}
+              (prop.example !== undefined
+                ? `e.g. ${JSON.stringify(prop.example)}`
+                : "—")}
             {prop.enum && (
               <span className="text-text-disabled ml-1">
                 ({prop.enum.join(" | ")})
@@ -272,7 +296,9 @@ function RequestBodyProps({ schema }: { schema: OpenApiSchema }) {
 function EndpointCard({ method, path, operation }: EndpointEntry) {
   const [expanded, setExpanded] = useState(false);
   const isAuth = !!operation.security?.length;
-  const desc = operation.description ? shortDescription(operation.description) : null;
+  const desc = operation.description
+    ? shortDescription(operation.description)
+    : null;
 
   const requestSchema =
     operation.requestBody?.content?.["application/json"]?.schema ??
@@ -285,22 +311,16 @@ function EndpointCard({ method, path, operation }: EndpointEntry) {
         className="w-full flex items-center gap-3 px-4 py-3 hover:bg-hover transition-colors text-left"
       >
         <MethodBadge method={method} />
-        <code className="text-sm font-mono text-text-primary flex-1 min-w-0 truncate">{path}</code>
+        <code className="text-sm font-mono text-text-primary flex-1 min-w-0 truncate">
+          {path}
+        </code>
         <span className="text-xs text-text-secondary hidden sm:block shrink-0 max-w-[200px] truncate">
           {operation.summary}
         </span>
         {isAuth ? (
-          <Lock
-            size={12}
-            className="text-text-disabled shrink-0"
-            aria-label="Auth required"
-          />
+          <Lock size={12} className="text-text-disabled shrink-0" />
         ) : (
-          <Globe
-            size={12}
-            className="text-text-disabled shrink-0"
-            aria-label="Public"
-          />
+          <Globe size={12} className="text-text-disabled shrink-0" />
         )}
         <ChevronDown
           size={14}
@@ -311,7 +331,9 @@ function EndpointCard({ method, path, operation }: EndpointEntry) {
       {expanded && (
         <div className="border-t border-border px-4 py-4 flex flex-col gap-4">
           <div className="flex items-center gap-4">
-            <span className="text-sm font-medium text-text-primary">{operation.summary}</span>
+            <span className="text-sm font-medium text-text-primary">
+              {operation.summary}
+            </span>
             {isAuth ? (
               <span className="inline-flex items-center gap-1 text-xs text-text-secondary bg-hover px-2 py-0.5 rounded">
                 <Lock size={10} /> Auth required
@@ -324,7 +346,9 @@ function EndpointCard({ method, path, operation }: EndpointEntry) {
           </div>
 
           {desc && (
-            <p className="text-sm text-text-secondary leading-relaxed whitespace-pre-wrap">{desc}</p>
+            <p className="text-sm text-text-secondary leading-relaxed whitespace-pre-wrap">
+              {desc}
+            </p>
           )}
 
           {operation.parameters && operation.parameters.length > 0 && (
@@ -338,13 +362,19 @@ function EndpointCard({ method, path, operation }: EndpointEntry) {
                     key={param.name}
                     className="flex items-start gap-3 px-3 py-2 border-b border-border last:border-0 text-xs"
                   >
-                    <code className="font-mono text-text-primary w-28 shrink-0 pt-0.5">{param.name}</code>
+                    <code className="font-mono text-text-primary w-28 shrink-0 pt-0.5">
+                      {param.name}
+                    </code>
                     <span className="text-text-disabled bg-hover px-1.5 py-0.5 rounded shrink-0">
                       {param.in}
                     </span>
-                    <span className="text-text-secondary flex-1">{param.description ?? "—"}</span>
+                    <span className="text-text-secondary flex-1">
+                      {param.description ?? "—"}
+                    </span>
                     {param.required && (
-                      <span className="text-danger shrink-0 pt-0.5">required</span>
+                      <span className="text-danger shrink-0 pt-0.5">
+                        required
+                      </span>
                     )}
                   </div>
                 ))}
@@ -376,7 +406,9 @@ function EndpointCard({ method, path, operation }: EndpointEntry) {
                   >
                     {status}
                   </code>
-                  <span className="text-xs text-text-secondary">{response.description}</span>
+                  <span className="text-xs text-text-secondary">
+                    {response.description}
+                  </span>
                 </div>
               ))}
             </div>
@@ -413,7 +445,9 @@ function DocumentationPage() {
     <div className="max-w-content mx-auto px-6 py-10">
       <div className="flex items-start justify-between mb-8">
         <div>
-          <h1 className="text-xl font-semibold text-text-primary mb-1">API Documentation</h1>
+          <h1 className="text-xl font-semibold text-text-primary mb-1">
+            API Documentation
+          </h1>
           {spec && (
             <p className="text-sm text-text-secondary">
               {spec.info.title} — v{spec.info.version}
@@ -443,7 +477,9 @@ function DocumentationPage() {
           <section className="mb-8">
             <div className="bg-surface border border-border rounded-lg px-4 py-3 flex flex-col gap-1.5">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs font-medium text-text-secondary">Base URL</span>
+                <span className="text-xs font-medium text-text-secondary">
+                  Base URL
+                </span>
                 <code className="text-xs font-mono text-text-primary bg-hover px-2 py-0.5 rounded">
                   {API_BASE}
                 </code>
@@ -453,8 +489,12 @@ function DocumentationPage() {
                 <code className="font-mono bg-hover px-1 py-0.5 rounded">
                   Authorization: Bearer &lt;token&gt;
                 </code>{" "}
-                for authenticated endpoints — JWT from login or API token with prefix{" "}
-                <code className="font-mono bg-hover px-1 py-0.5 rounded text-warning">wct_</code>.
+                for authenticated endpoints — JWT from login or API token with
+                prefix{" "}
+                <code className="font-mono bg-hover px-1 py-0.5 rounded text-warning">
+                  wct_
+                </code>
+                .
               </p>
             </div>
           </section>
@@ -476,7 +516,9 @@ function DocumentationPage() {
                     {tag.name}
                   </h2>
                   {tag.description && (
-                    <p className="text-xs text-text-secondary mt-0.5">{tag.description}</p>
+                    <p className="text-xs text-text-secondary mt-0.5">
+                      {tag.description}
+                    </p>
                   )}
                 </div>
                 <div className="flex flex-col gap-2">
