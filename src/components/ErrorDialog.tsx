@@ -17,7 +17,7 @@ export function ErrorDialog() {
   const { error, clearError } = useError();
 
   return (
-    <DialogPrimitive.Root open={!!error} onOpenChange={(open) => { if (!open) clearError(); }} dismissible={false}>
+    <DialogPrimitive.Root open={!!error} onOpenChange={(open) => { if (!open) clearError(); }}>
       <DialogPrimitive.Portal>
         <DialogPrimitive.Backdrop className="fixed inset-0 z-50 bg-black/20 backdrop-blur-[2px]" />
         <DialogPrimitive.Popup className="fixed top-1/2 left-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white ring-1 ring-black/8 shadow-lg outline-none">

@@ -290,9 +290,9 @@ function EndpointCard({ method, path, operation }: EndpointEntry) {
           {operation.summary}
         </span>
         {isAuth ? (
-          <Lock size={12} className="text-text-disabled shrink-0" title="Auth required" />
+          <Lock size={12} className="text-text-disabled shrink-0" />
         ) : (
-          <Globe size={12} className="text-text-disabled shrink-0" title="Public" />
+          <Globe size={12} className="text-text-disabled shrink-0" />
         )}
         <ChevronDown
           size={14}

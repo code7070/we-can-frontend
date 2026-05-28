@@ -149,7 +149,6 @@ export function RichTextEditor({
   minHeight = 160,
   onChange,
   onBlur,
-  onFocus,
   initialValue = "",
   readOnly = false,
   autoFocus = false,
