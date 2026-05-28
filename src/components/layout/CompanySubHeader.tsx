@@ -7,7 +7,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { CommandBar } from "@/components/command-bar/CommandBar";
 import { companyProjectQueryOptions } from "@/api/projects";
 import { taskQueryOptions } from "@/api/tasks";
-import { cn } from "@/lib/utils";
 
 function NewActionDropdown({ companySlug }: { companySlug: string }) {
   const [open, setOpen] = useState(false);
